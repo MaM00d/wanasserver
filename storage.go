@@ -8,7 +8,7 @@ import (
 )
 
 type Storage interface {
-	CreateUser(*User) error
+	InsertUser(*User) error
 	DeleteUser(int) error
 	UpdateUser(*User) error
 	GetUserById(int) (*User, error)
@@ -50,7 +50,7 @@ func (s *PostgresStore) createUserTabel() error {
 	return err
 }
 
-func (s *PostgresStore) CreateUser(user *User) error {
+func (s *PostgresStore) InsertUser(user *User) error {
 	query := `insert into users 
     (first_name,last_name,username,email,password,created_at)
 values ($1,$2,$3,$4,$5,$6)
