@@ -35,6 +35,10 @@ func (s *APIServer) Run() {
 	// Routes
 	router.HandleFunc("/login", makeHTTPHandleFunc(s.handleLogin))
 	router.HandleFunc("/register", makeHTTPHandleFunc(s.handleUser))
+	router.HandleFunc(
+		"/user/{email}",
+		withJWTAuth(makeHTTPHandleFunc(s.handleGetUserByEmail), s.store),
+	)
 	// logging
 	log.Println("JSON API server runngin on port: ", s.listenAddr)
 	// start listening on addresss and sending to router
