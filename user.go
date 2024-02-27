@@ -22,6 +22,38 @@ type User struct {
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+func NewUser(firstName, lastName, email, username, password string) (*User, error) {
+	encpw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+	return &User{
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Password:  string(encpw),
+		Username:  username,
+		CreatedAt: time.Now().UTC(),
+	}, nil
+}
+
+func (a *User) ValidPassword(pw string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(a.Password), []byte(pw)) == nil
+}
+
+func createJWT(eluser *User) (string, error) {
+	claims := &jwt.MapClaims{
+		"expiresAt": 15000,
+		"userEmail": eluser.Email,
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
+}
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -37,25 +69,6 @@ type UserView struct {
 	LastName  string    `json:"lastName"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
-}
-
-func (a *User) ValidPassword(pw string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(a.Password), []byte(pw)) == nil
-}
-
-func NewUser(firstName, lastName, email, username, password string) (*User, error) {
-	encpw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-	return &User{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Password:  string(encpw),
-		Username:  username,
-		CreatedAt: time.Now().UTC(),
-	}, nil
 }
 
 func (s *APIServer) handleUser(w http.ResponseWriter, r *http.Request) error {
@@ -97,18 +110,6 @@ func (s *APIServer) handleRegister(w http.ResponseWriter, r *http.Request) error
 	}
 
 	return WriteJSON(w, http.StatusOK, user)
-}
-
-func createJWT(eluser *User) (string, error) {
-	claims := &jwt.MapClaims{
-		"expiresAt": 15000,
-		"userEmail": eluser.Email,
-	}
-
-	secret := os.Getenv("JWT_SECRET")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	return token.SignedString([]byte(secret))
 }
 
 func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
