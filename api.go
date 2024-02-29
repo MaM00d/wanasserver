@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"Server/user"
 )
 
 type (
@@ -17,11 +19,11 @@ type (
 
 type APIServer struct {
 	listenAddr string
-	store      Storage
+	store      user.Storage
 }
 
 // create object of struct apiserver to set the listen addr
-func NewAPIServer(listenAddr string, store Storage) *APIServer {
+func NewAPIServer(listenAddr string, store user.Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		store:      store,
