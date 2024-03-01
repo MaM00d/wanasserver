@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -53,7 +54,7 @@ func (s *APIServer) Run() {
 		JWTAuthMiddleware(makeHTTPHandleFunc(s.handleGetUserByEmailFromVars), s.store),
 	)
 	// logging
-	slog.Info("JSON API server runngin", "PORT", s.listenAddr)
+	log.Println("JSON API server runngin on port: ", s.listenAddr)
 	// start listening on addresss and sending to router
 	http.ListenAndServe(s.listenAddr, router)
 }
