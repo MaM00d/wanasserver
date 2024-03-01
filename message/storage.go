@@ -1,8 +1,9 @@
-package main
+package user
 
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
 
 	_ "github.com/lib/pq"
 )
@@ -33,38 +34,51 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func (s *PostgresStore) InitDb() error {
+	s.dropUserTabel()
 	return s.createUserTabel()
 }
 
+func (s *PostgresStore) dropUserTabel() error {
+	query := `
+    drop table if exists "User";
+    `
+	_, err := s.db.Exec(query)
+	return err
+}
+
 func (s *PostgresStore) createUserTabel() error {
-	query := `create table if not exists users (
-        id serial primary key,
-        first_name varchar(50),
-        last_name varchar(50),
-        username varchar(50),
-        email varchar(50),
-        password varchar(100),
-        created_at timestamp
-    )`
+	query := `
+        CREATE TABLE IF NOT EXISTS "User" (
+            "ID" serial   NOT NULL,
+            "Name" char(50)   NOT NULL,
+            "Email" char(50)   NOT NULL,
+            "Password" char(100)   NOT NULL,
+            "Phone" char(50)   NULL,
+            "CreatedAt" timestamp   NOT NULL,
+            CONSTRAINT "pk_User" PRIMARY KEY (
+                "ID"
+             )
+        );
+    `
 	_, err := s.db.Exec(query)
 	return err
 }
 
 func (s *PostgresStore) InsertUser(user *User) error {
-	query := `insert into users 
-    (first_name,last_name,username,email,password,created_at)
-    values ($1,$2,$3,$4,$5,$6)
+	query := `insert into "User" 
+    ("Name","Phone","Email","Password","CreatedAt")
+    values ($1,$2,$3,$4,$5)
     `
 	resp, err := s.db.Query(
 		query,
-		user.FirstName,
-		user.LastName,
-		user.Username,
+		user.Name,
+		user.Phone,
 		user.Email,
 		user.Password,
 		user.CreatedAt,
 	)
 	if err != nil {
+		slog.Error("inserting to database")
 		return err
 	}
 
@@ -88,9 +102,8 @@ func scanIntoAccount(rows *sql.Rows) (*User, error) {
 	eluser := new(User)
 	err := rows.Scan(
 		&eluser.ID,
-		&eluser.FirstName,
-		&eluser.LastName,
-		&eluser.Username,
+		&eluser.Name,
+		&eluser.Phone,
 		&eluser.Email,
 		&eluser.Password,
 		&eluser.CreatedAt)
@@ -102,14 +115,15 @@ func (s *PostgresStore) GetUserByEmail(email string) (*User, error) {
 	eluser := new(User)
 	err := s.db.QueryRow("select * from users where email = $1", email).Scan(
 		&eluser.ID,
-		&eluser.FirstName,
-		&eluser.LastName,
-		&eluser.Username,
+		&eluser.Name,
+		&eluser.Phone,
 		&eluser.Email,
 		&eluser.Password,
 		&eluser.CreatedAt)
 
 	if err == sql.ErrNoRows {
+
+		slog.Info("no user found with this email", "email", email)
 		return nil, fmt.Errorf("user with email [%d] not found", email)
 	}
 	// for rows.Next() {
