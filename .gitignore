@@ -3,3 +3,4 @@ $HOME*
 /bin/
 /trash/
 ./gobank/
+/pkg/
