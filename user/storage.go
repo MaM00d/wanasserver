@@ -8,37 +8,29 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Storage interface {
+type UserStorage interface {
 	InsertUser(*User) error
 	DeleteUser(int) error
 	UpdateUser(*User) error
 	GetUserByEmail(string) (*User, error)
 }
 
-type PostgresStore struct {
+type userStore struct {
 	db *sql.DB
 }
 
-func NewPostgresStore() (*PostgresStore, error) {
-	connStr := "user=tme password='1598753' dbname=wanas sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, err
-	}
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-	return &PostgresStore{
+func newUserStore(db *sql.DB) *userStore {
+	return &userStore{
 		db: db,
-	}, nil
+	}
 }
 
-func (s *PostgresStore) InitDb() error {
+func (s *userStore) InitDb() error {
 	s.dropUserTabel()
 	return s.createUserTabel()
 }
 
-func (s *PostgresStore) dropUserTabel() error {
+func (s *userStore) dropUserTabel() error {
 	query := `
     drop table if exists "User";
     `
@@ -46,7 +38,7 @@ func (s *PostgresStore) dropUserTabel() error {
 	return err
 }
 
-func (s *PostgresStore) createUserTabel() error {
+func (s *userStore) createUserTabel() error {
 	query := `
         CREATE TABLE IF NOT EXISTS "User" (
             "ID" serial   NOT NULL,
@@ -64,7 +56,7 @@ func (s *PostgresStore) createUserTabel() error {
 	return err
 }
 
-func (s *PostgresStore) InsertUser(user *User) error {
+func (s *userStore) InsertUser(user *User) error {
 	query := `insert into "User" 
     ("Name","Phone","Email","Password","CreatedAt")
     values ($1,$2,$3,$4,$5)
@@ -86,15 +78,15 @@ func (s *PostgresStore) InsertUser(user *User) error {
 	return nil
 }
 
-func (s *PostgresStore) DeleteUser(int) error {
+func (s *userStore) DeleteUser(int) error {
 	return nil
 }
 
-func (s *PostgresStore) UpdateUser(*User) error {
+func (s *userStore) UpdateUser(*User) error {
 	return nil
 }
 
-// func (s *PostgresStore) GetUserById(int) (*User, error) {
+// func (s *userStore) GetUserById(int) (*User, error) {
 // 	return nil, nil
 // }
 
@@ -111,7 +103,7 @@ func scanIntoAccount(rows *sql.Rows) (*User, error) {
 	return eluser, err
 }
 
-func (s *PostgresStore) GetUserByEmail(email string) (*User, error) {
+func (s *userStore) GetUserByEmail(email string) (*User, error) {
 	eluser := new(User)
 	err := s.db.QueryRow("select * from users where email = $1", email).Scan(
 		&eluser.ID,
