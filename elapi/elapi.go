@@ -50,6 +50,6 @@ func (ap *ElApi) GetFromVars(r *http.Request, elvar string) string {
 	return mux.Vars(r)[elvar]
 }
 
-func (ap *ElApi) Route(elroute string, elfunc ApiFunc) {
-	ap.router.HandleFunc(elroute, ap.MakeHTTPHandleFunc(elfunc))
+func (ap *ElApi) Route(elroute string, elfunc ApiFunc, method string) {
+	ap.router.HandleFunc(elroute, ap.MakeHTTPHandleFunc(elfunc)).Methods(method)
 }

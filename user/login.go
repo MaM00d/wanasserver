@@ -17,14 +17,6 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
-func (s *ElUser) HandleLogin(w http.ResponseWriter, r *http.Request) error {
-	if r.Method != "POST" {
-		return fmt.Errorf("method not allowed %s", r.Method)
-	}
-
-	return s.Login(w, r)
-}
-
 func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 	slog.Info("Handling Login")
 	var req LoginRequest

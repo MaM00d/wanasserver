@@ -44,7 +44,7 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		eluser.ap.WriteJSON(w, http.StatusForbidden, api.ApiError{Error: "invalid token"})
 	}
-	return eluser.handleGetUserByEmailFromVars(w, r)
+	return eluser.getUserByEmailFromVars(w, r)
 }
 
 func tokenizejwt(eluser *User) (string, error) {
@@ -71,4 +71,24 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
 		return []byte(secret), nil
 	})
+}
+
+func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) error {
+	email := s.getEmailFromVars(r)
+
+	account, err := s.store.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	return s.ap.WriteJSON(w, http.StatusOK, account)
+
+	// if r.Method == "DELETE" {
+	// 	return s.handleDeleteAccount(w, r)
+	// }
+}
+
+func (eluser *ElUser) getEmailFromVars(r *http.Request) string {
+	elemail := eluser.ap.GetFromVars(r, "email")
+	return elemail
 }
