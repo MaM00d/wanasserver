@@ -23,9 +23,9 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("err 2")
 		eluser.ap.PermissionDenied(w)
 	}
-	userEmail := eluser.getEmailFromVars(r)
+	userEmail := eluser.getIdFromVars(r)
 
-	user, err := eluser.store.GetUserByEmail(userEmail)
+	user, err := eluser.store.GetUserById(userEmail)
 	if err != nil {
 
 		fmt.Println("err 3")
@@ -35,7 +35,7 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	if user.Email != claims["userEmail"] {
+	if user.Email != claims["userid"] {
 
 		fmt.Println("err 4")
 		eluser.ap.PermissionDenied(w)
@@ -50,7 +50,7 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 func tokenizejwt(eluser *User) (string, error) {
 	claims := &jwt.MapClaims{
 		"expiresAt": 15000,
-		"userEmail": eluser.Email,
+		"userid":    eluser.ID,
 	}
 
 	secret := os.Getenv("JWT_SECRET")
@@ -74,9 +74,9 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 }
 
 func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) error {
-	email := s.getEmailFromVars(r)
+	id := s.getIdFromVars(r)
 
-	account, err := s.store.GetUserByEmail(email)
+	account, err := s.store.GetUserById(id)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) 
 	// }
 }
 
-func (eluser *ElUser) getEmailFromVars(r *http.Request) string {
-	elemail := eluser.ap.GetFromVars(r, "email")
+func (eluser *ElUser) getIdFromVars(r *http.Request) string {
+	elemail := eluser.ap.GetFromVars(r, "id")
 	return elemail
 }

@@ -18,10 +18,10 @@ type User struct {
 
 type UserView struct {
 	ID        int       `json:"id"`
-	Username  string    `json:"username"`
-	FirstName string    `json:"firstName"`
-	LastName  string    `json:"lastName"`
+	Name      string    `json:"name"`
+	Phone     string    `json:"phone"`
 	Email     string    `json:"email"`
+	Password  string    `json:"password"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 

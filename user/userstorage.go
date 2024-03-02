@@ -12,7 +12,7 @@ type UserStorage interface {
 	InsertUser(*User) error
 	DeleteUser(int) error
 	UpdateUser(*User) error
-	GetUserByEmail(string) (*User, error)
+	GetUserById(string) (*User, error)
 }
 
 type userStore struct {
@@ -103,9 +103,9 @@ func scanIntoAccount(rows *sql.Rows) (*User, error) {
 	return eluser, err
 }
 
-func (s *userStore) GetUserByEmail(email string) (*User, error) {
+func (s *userStore) GetUserById(id int) (*User, error) {
 	eluser := new(User)
-	err := s.db.QueryRow("select * from users where email = $1", email).Scan(
+	err := s.db.QueryRow("select * from users where ID = $1", id).Scan(
 		&eluser.ID,
 		&eluser.Name,
 		&eluser.Phone,
@@ -115,8 +115,8 @@ func (s *userStore) GetUserByEmail(email string) (*User, error) {
 
 	if err == sql.ErrNoRows {
 
-		slog.Info("no user found with this email", "email", email)
-		return nil, fmt.Errorf("user with email [%d] not found", email)
+		slog.Info("no user found with this email", "email", id)
+		return nil, fmt.Errorf("user with email [%d] not found", id)
 	}
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
