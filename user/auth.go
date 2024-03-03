@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 
@@ -23,9 +24,9 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("err 2")
 		eluser.ap.PermissionDenied(w)
 	}
-	userEmail := eluser.getIdFromVars(r)
+	userid := eluser.getIdFromVars(r)
 
-	user, err := eluser.store.GetUserById(userEmail)
+	user, err := eluser.store.GetUserById(userid)
 	if err != nil {
 
 		fmt.Println("err 3")
@@ -88,7 +89,11 @@ func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) 
 	// }
 }
 
-func (eluser *ElUser) getIdFromVars(r *http.Request) string {
-	elemail := eluser.ap.GetFromVars(r, "id")
-	return elemail
+func (eluser *ElUser) getIdFromVars(r *http.Request) int {
+	elid := eluser.ap.GetFromVars(r, "id")
+	eli, err := strconv.Atoi(elid)
+	if err != nil {
+		return 0
+	}
+	return eli
 }

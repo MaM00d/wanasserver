@@ -5,15 +5,17 @@ import (
 )
 
 type Persona struct {
-	Name      string    `json:"personaname"`
-	UserID    int       `json:"userid"`
-	CreatedAt time.Time `json:"CreatedAt"`
+	ID        int       `db:"id"        json:"id"`
+	Name      string    `db:"name"      json:"name"`
+	UserID    int       `db:"userid"    json:"userid"`
+	CreatedAt time.Time `db:"createdat" json:"createdAt"`
 }
 
 type PersonaView struct {
-	Name      string    `json:"personaname"`
-	UserID    int       `json:"userid"`
-	CreatedAt time.Time `json:"CreatedAt"`
+	ID        int       `db:"id"        json:"id"`
+	Name      string    `db:"name"      json:"name"`
+	UserID    int       `db:"userid"    json:"userid"`
+	CreatedAt time.Time `db:"createdat" json:"createdAt"`
 }
 
 func NewPersona(name string, userid int) (*Persona, error) {

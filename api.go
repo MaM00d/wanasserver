@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	api "Server/elapi"
+	persona "Server/persona"
 	user "Server/user"
 )
 
@@ -23,6 +24,8 @@ func NewApiServer(listenAddr string, store *Storage) *APIServer {
 func (s *APIServer) Run() {
 	ap := api.NewElApi()
 	user.NewElUser(s.store.db, ap)
+	persona.NewElPersona(s.store.db, ap)
+	// chat.NewElMsg(s.store.db, ap)
 	// logging
 	slog.Info("JSON API server runngin", "PORT", s.listenAddr)
 	// start listening on addresss and sending to router

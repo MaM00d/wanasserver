@@ -32,6 +32,7 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	slog.Info(req.Password)
 	if !acc.ValidPassword(req.Password) {
 		return fmt.Errorf("not authenticated")
 	}

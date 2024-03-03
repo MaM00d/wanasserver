@@ -2,16 +2,13 @@ package user
 
 import (
 	"database/sql"
-	"encoding/json"
-	"log/slog"
-	"net/http"
 
 	api "Server/elapi"
 )
 
 type ElUser struct {
 	ap    *api.ElApi
-	store UserStorage
+	store *userStore
 }
 
 // create object of struct apiserver to set the listen addr

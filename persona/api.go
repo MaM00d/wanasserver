@@ -8,20 +8,21 @@ import (
 
 type ElPersona struct {
 	ap    *api.ElApi
-	store PersonaStorage
+	store *personaStore
 }
 
 // create object of struct apiserver to set the listen addr
 func NewElPersona(db *sql.DB, elapi *api.ElApi) *ElPersona {
 	store := newPersonaStore(db)
-	elPersona := &ElPersona{
+	elpersona := &ElPersona{
 		ap:    elapi,
 		store: store,
 	}
-	elPersona.addroutes()
-	return elPersona
+	elpersona.addroutes()
+	return elpersona
 }
 
 func (elpersona *ElPersona) addroutes() {
-	elpersona.ap.Route("/msg", elpersona.getPersonas, "POST")
+	elpersona.ap.Route("/persona", elpersona.createpersona, "POST")
+	elpersona.ap.Route("/getpersonas", elpersona.getpersonas, "POST")
 }

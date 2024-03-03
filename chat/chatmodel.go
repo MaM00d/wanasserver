@@ -1,27 +1,33 @@
-package msg
+package chat
 
 import (
 	"time"
 )
 
+type Chat struct {
+	ID        int       `db:"id"        json:"id"`
+	PersonaID int       `db:"personaid" json:"personaid"`
+	CreatedAt time.Time `db:"createdat" json:"createdat"`
+}
+
 type Msg struct {
-	text      string    `json:"text"`
-	email     string    `json:"email"`
-	personaid string    `json:"persona"`
-	CreatedAt time.Time `json:"CreatedAt"`
+	ID        int       `db:"id"      json:"id"`
+	Message   string    `db:"message" json:"message"`
+	ChatID    int       `db:"chatid"  json:"chatid"`
+	CreatedAt time.Time `db:"date"    json:"createdat"`
 }
 
-type MsgView struct {
-	text      string    `json:"text"`
-	email     string    `json:"email"`
-	CreatedAt time.Time `json:"CreatedAt"`
+func NewChat(personaid int) (*Chat, error) {
+	return &Chat{
+		PersonaID: personaid,
+		CreatedAt: time.Now().UTC(),
+	}, nil
 }
 
-func NewMsg(text, email, personaid string) (*Msg, error) {
+func NewMsg(message string, chatid int) (*Msg, error) {
 	return &Msg{
-		text:      text,
-		email:     email,
-		personaid: personaid,
+		Message:   message,
+		ChatID:    chatid,
 		CreatedAt: time.Now().UTC(),
 	}, nil
 }

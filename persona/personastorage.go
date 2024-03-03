@@ -12,6 +12,8 @@ type PersonaStorage interface {
 	InsertPersona(*Persona) error
 	DeletePersona(int) error
 	UpdatePersona(*Persona) error
+	GetPersonaById(int) (*Persona, error)
+	GetPersonaByEmail(string) (*Persona, error)
 }
 
 type personaStore struct {
@@ -19,19 +21,41 @@ type personaStore struct {
 }
 
 func newPersonaStore(db *sql.DB) *personaStore {
-	return &personaStore{
+	elstore := &personaStore{
 		db: db,
 	}
+	elstore.InitDb()
+	return elstore
 }
 
 func (s *personaStore) InitDb() error {
+	s.droptrigid()
+	s.dropfunctionid()
 	s.dropPersonaTabel()
-	return s.createPersonaTabel()
+	s.createPersonaTabel()
+	s.createfunctionid()
+	return s.createtriggerid()
 }
 
 func (s *personaStore) dropPersonaTabel() error {
 	query := `
-    drop table if exists "Persona";
+    drop table if exists Persona;
+    `
+	_, err := s.db.Exec(query)
+	return err
+}
+
+func (s *personaStore) dropfunctionid() error {
+	query := `
+    drop function if exists fn_trig_persona_pk;
+    `
+	_, err := s.db.Exec(query)
+	return err
+}
+
+func (s *personaStore) droptrigid() error {
+	query := `
+    drop trigger if exists trig_persona_pk on persona;
     `
 	_, err := s.db.Exec(query)
 	return err
@@ -39,31 +63,60 @@ func (s *personaStore) dropPersonaTabel() error {
 
 func (s *personaStore) createPersonaTabel() error {
 	query := `
-        CREATE TABLE "Persona" (
-            "ID" int   NOT NULL,
-            "Name" char(50)   NOT NULL,
-            "UserID" int   NOT NULL,
-            "CreatedAt" timestamp   NOT NULL,
-            CONSTRAINT "pk_Persona" PRIMARY KEY (
-                "ID"
-             )
-        );
+            CREATE TABLE persona (
+                id int   ,
+                name char(50)   NOT NULL,
+                userid int   NOT NULL,
+                createdat timestamp   NOT NULL,
+                CONSTRAINT pk_persona PRIMARY KEY (
+                    id,useriD
+                 )
+            );
     `
 	_, err := s.db.Exec(query)
 	return err
 }
 
-func (s *personaStore) InsertPersona(persona *Persona) error {
-	query := `insert into "Persona" 
-    ("Name","UserID","CreatedAt")
+func (s *personaStore) createtriggerid() error {
+	query := `
+
+            CREATE TRIGGER trig_persona_pk
+              BEFORE insert 
+              ON persona
+              FOR EACH ROW
+              EXECUTE PROCEDURE fn_trig_persona_pk();
+    `
+	_, err := s.db.Exec(query)
+	return err
+}
+
+func (s *personaStore) createfunctionid() error {
+	query := `
+            CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
+              RETURNS "pg_catalog"."trigger" AS $BODY$ 
+            begin
+            new.id = (select count(*)+1 from persona where userid=new.userid);
+            return NEW;
+            end;
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+
+    `
+	_, err := s.db.Exec(query)
+	return err
+}
+
+func (s *personaStore) InsertPersona(elpersona *Persona) error {
+	query := `insert into Persona 
+    (name,userid,createdat)
     values ($1,$2,$3)
     `
 	resp, err := s.db.Query(
 		query,
-		persona.Name,
-		persona.UserID,
-		persona.CreatedAt,
-	)
+		&elpersona.Name,
+		&elpersona.UserID,
+		&elpersona.CreatedAt)
 	if err != nil {
 		slog.Error("inserting to database")
 		return err
@@ -88,6 +141,7 @@ func (s *personaStore) UpdatePersona(*Persona) error {
 func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 	elpersona := new(Persona)
 	err := rows.Scan(
+		&elpersona.ID,
 		&elpersona.Name,
 		&elpersona.UserID,
 		&elpersona.CreatedAt)
@@ -95,19 +149,23 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 	return elpersona, err
 }
 
-func (s *personaStore) GetPersonasByUserID(userid int) (*Persona, error) {
-	elpersona := new(Persona)
-	personas, err := s.db.Query("select * from Persona where UserID = $1", userid)
+func (s *personaStore) GetPersonasByUserId(id int) ([]Persona, error) {
+	rows, err := s.db.Query(`select * from Personas where ID = $1`, id)
 
 	if err == sql.ErrNoRows {
 
-		slog.Info("no persona found with this userid", "email", userid)
-		return nil, fmt.Errorf("persona with userid [%d] not found", userid)
+		slog.Info("no persona found with this email", "email", id)
+		return nil, fmt.Errorf("persona with email [%d] not found", id)
+	}
+	var personas []Persona
+	for rows.Next() {
+		var persona Persona
+		if err := rows.Scan(&persona.ID, &persona.Name, &persona.UserID,
+			&persona.CreatedAt); err != nil {
+			return personas, err
+		}
+		personas = append(personas, persona)
 	}
 
-	for personas.Next() {
-		return scanIntoAccount(personas)
-	}
-
-	return elpersona, nil
+	return personas, nil
 }
