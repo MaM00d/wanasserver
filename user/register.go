@@ -28,13 +28,13 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// create user object from user struct
-	user, err := NewUser(
+	user := NewUser(
 		userReq.Name,
 		userReq.Email,
 		userReq.Password,
 		elphone,
 	)
-	if err != nil {
+	if err := user.Encrippass(); err != nil {
 		return err
 	}
 

@@ -10,9 +10,9 @@ import (
 type User struct {
 	ID        int       `db:"id"        json:"id"`
 	Name      string    `db:"name"      json:"name"`
-	Phone     int       `db:"phone"     json:"phone"`
 	Email     string    `db:"email"     json:"email"`
 	Password  string    `db:"password"  json:"password"`
+	Phone     int       `db:"phone"     json:"phone"`
 	CreatedAt time.Time `db:"createdat" json:"createdAt"`
 }
 
@@ -25,23 +25,30 @@ type UserView struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func NewUser(name, email, password string, phone int) (*User, error) {
+func NewUser(name, email, password string, phone int) *User {
 	slog.Info(password)
-	encpw, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		slog.Error("error encrypting password")
-		return nil, err
-	}
-	return &User{
+	elusr := &User{
+		ID:        0,
 		Name:      name,
 		Email:     email,
-		Password:  string(encpw),
+		Password:  password,
 		Phone:     phone,
 		CreatedAt: time.Now().UTC(),
-	}, nil
+	}
+	return elusr
 }
 
 func (a *User) ValidPassword(pw string) bool {
 	slog.Info("mamaaaa: ", "pass", a.Password)
 	return bcrypt.CompareHashAndPassword([]byte(a.Password), []byte(pw)) == nil
+}
+
+func (a *User) Encrippass() error {
+	encpw, err := bcrypt.GenerateFromPassword([]byte(a.Password), bcrypt.DefaultCost)
+	a.Password = string(encpw)
+	if err != nil {
+		slog.Error("error encrypting password")
+		return err
+	}
+	return nil
 }

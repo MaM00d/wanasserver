@@ -6,6 +6,8 @@ import (
 	"log/slog"
 
 	_ "github.com/lib/pq"
+
+	db "Server/eldb"
 )
 
 type PersonaStorage interface {
@@ -17,10 +19,10 @@ type PersonaStorage interface {
 }
 
 type personaStore struct {
-	db *sql.DB
+	db db.Storage
 }
 
-func newPersonaStore(db *sql.DB) *personaStore {
+func newPersonaStore(db db.Storage) *personaStore {
 	elstore := &personaStore{
 		db: db,
 	}
@@ -41,7 +43,7 @@ func (s *personaStore) dropPersonaTabel() error {
 	query := `
     drop table if exists Persona;
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -49,7 +51,7 @@ func (s *personaStore) dropfunctionid() error {
 	query := `
     drop function if exists fn_trig_persona_pk;
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -57,7 +59,7 @@ func (s *personaStore) droptrigid() error {
 	query := `
     drop trigger if exists trig_persona_pk on persona;
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -73,7 +75,7 @@ func (s *personaStore) createPersonaTabel() error {
                  )
             );
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -86,7 +88,7 @@ func (s *personaStore) createtriggerid() error {
               FOR EACH ROW
               EXECUTE PROCEDURE fn_trig_persona_pk();
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -103,7 +105,7 @@ func (s *personaStore) createfunctionid() error {
               COST 100;
 
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -112,7 +114,7 @@ func (s *personaStore) InsertPersona(elpersona *Persona) error {
     (name,userid,createdat)
     values ($1,$2,$3)
     `
-	resp, err := s.db.Query(
+	err := s.db.Query(
 		query,
 		&elpersona.Name,
 		&elpersona.UserID,
@@ -122,7 +124,6 @@ func (s *personaStore) InsertPersona(elpersona *Persona) error {
 		return err
 	}
 
-	fmt.Printf("%+v\n", resp)
 	return nil
 }
 
@@ -150,22 +151,13 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 }
 
 func (s *personaStore) GetPersonasByUserId(id int) ([]Persona, error) {
-	rows, err := s.db.Query(`select * from Personas where ID = $1`, id)
-
-	if err == sql.ErrNoRows {
-
-		slog.Info("no persona found with this email", "email", id)
-		return nil, fmt.Errorf("persona with email [%d] not found", id)
-	}
 	var personas []Persona
-	for rows.Next() {
-		var persona Persona
-		if err := rows.Scan(&persona.ID, &persona.Name, &persona.UserID,
-			&persona.CreatedAt); err != nil {
-			return personas, err
-		}
-		personas = append(personas, persona)
-	}
+	rows := s.db.QueryScan(personas, `select * from Personas where ID = $1`, id)
 
+	if rows == fmt.Errorf("not found") {
+
+		slog.Error("GetPersonasByUserId", "id", id)
+		return nil, fmt.Errorf("persona with id [%d] not found", id)
+	}
 	return personas, nil
 }

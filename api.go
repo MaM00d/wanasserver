@@ -5,16 +5,17 @@ import (
 	"net/http"
 
 	api "Server/elapi"
+	db "Server/eldb"
 	persona "Server/persona"
 	user "Server/user"
 )
 
 type APIServer struct {
 	listenAddr string
-	store      Storage
+	store      db.Storage
 }
 
-func NewApiServer(listenAddr string, store *Storage) *APIServer {
+func NewApiServer(listenAddr string, store *db.Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
 		store:      *store,
@@ -23,8 +24,8 @@ func NewApiServer(listenAddr string, store *Storage) *APIServer {
 
 func (s *APIServer) Run() {
 	ap := api.NewElApi()
-	user.NewElUser(s.store.db, ap)
-	persona.NewElPersona(s.store.db, ap)
+	user.NewElUser(s.store, ap)
+	persona.NewElPersona(s.store, ap)
 	// chat.NewElMsg(s.store.db, ap)
 	// logging
 	slog.Info("JSON API server runngin", "PORT", s.listenAddr)

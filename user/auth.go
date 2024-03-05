@@ -26,7 +26,7 @@ func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) 
 	}
 	userid := eluser.getIdFromVars(r)
 
-	user, err := eluser.store.GetUserById(userid)
+	user, err := eluser.store.SelectUserById(userid)
 	if err != nil {
 
 		fmt.Println("err 3")
@@ -77,7 +77,7 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) error {
 	id := s.getIdFromVars(r)
 
-	account, err := s.store.GetUserById(id)
+	account, err := s.store.SelectUserById(id)
 	if err != nil {
 		return err
 	}

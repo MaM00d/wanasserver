@@ -1,9 +1,10 @@
 package persona
 
 import (
-	"database/sql"
+	"log/slog"
 
 	api "Server/elapi"
+	db "Server/eldb"
 )
 
 type ElPersona struct {
@@ -12,7 +13,7 @@ type ElPersona struct {
 }
 
 // create object of struct apiserver to set the listen addr
-func NewElPersona(db *sql.DB, elapi *api.ElApi) *ElPersona {
+func NewElPersona(db db.Storage, elapi *api.ElApi) *ElPersona {
 	store := newPersonaStore(db)
 	elpersona := &ElPersona{
 		ap:    elapi,
@@ -23,6 +24,7 @@ func NewElPersona(db *sql.DB, elapi *api.ElApi) *ElPersona {
 }
 
 func (elpersona *ElPersona) addroutes() {
-	elpersona.ap.Route("/persona", elpersona.createpersona, "POST")
+	slog.Info("ElPersona Routes")
+	elpersona.ap.Route("/persoona", elpersona.createpersona, "POST")
 	elpersona.ap.Route("/getpersonas", elpersona.getpersonas, "POST")
 }

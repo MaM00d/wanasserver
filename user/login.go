@@ -27,7 +27,7 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	acc, err := s.store.GetUserByEmail(req.Email)
+	acc, err := s.store.SelectUserByEmail(req.Email)
 	if err != nil {
 		return err
 	}

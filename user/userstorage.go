@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	_ "github.com/lib/pq"
+	db "Server/eldb"
 )
 
 type UserStorage interface {
@@ -17,10 +17,10 @@ type UserStorage interface {
 }
 
 type userStore struct {
-	db *sql.DB
+	db db.Storage
 }
 
-func newUserStore(db *sql.DB) *userStore {
+func newUserStore(db db.Storage) *userStore {
 	elstore := &userStore{
 		db: db,
 	}
@@ -37,7 +37,7 @@ func (s *userStore) dropUserTabel() error {
 	query := `
     drop table if exists Users;
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
@@ -55,30 +55,24 @@ func (s *userStore) createUserTabel() error {
              )
         );
     `
-	_, err := s.db.Exec(query)
+	err := s.db.Exec(query)
 	return err
 }
 
 func (s *userStore) InsertUser(user *User) error {
 	query := `insert into Users 
-    (Name,Phone,Email,Password,CreatedAt)
-    values ($1,$2,$3,$4,$5)
+    (id,Name,Email,Password,Phone,CreatedAt)
+    values ($1,$2,$3,$4,$5,$6)
     `
-	resp, err := s.db.Query(
+	return s.db.Query(
 		query,
-		user.Name,
-		user.Phone,
-		user.Email,
-		user.Password,
-		user.CreatedAt,
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.Phone,
+		&user.CreatedAt,
 	)
-	if err != nil {
-		slog.Error("inserting to database")
-		return err
-	}
-
-	fmt.Printf("%+v\n", resp)
-	return nil
 }
 
 func (s *userStore) DeleteUser(int) error {
@@ -93,29 +87,9 @@ func (s *userStore) UpdateUser(*User) error {
 // 	return nil, nil
 // }
 
-func scanIntoAccount(rows *sql.Rows) (*User, error) {
+func (s *userStore) SelectUserById(id int) (*User, error) {
 	eluser := new(User)
-	err := rows.Scan(
-		&eluser.ID,
-		&eluser.Name,
-		&eluser.Phone,
-		&eluser.Email,
-		&eluser.Password,
-		&eluser.CreatedAt)
-
-	return eluser, err
-}
-
-func (s *userStore) GetUserById(id int) (*User, error) {
-	eluser := new(User)
-	err := s.db.QueryRow(`select * from Users where ID = $1`, id).Scan(
-		&eluser.ID,
-		&eluser.Name,
-		&eluser.Phone,
-		&eluser.Email,
-		&eluser.Password,
-		&eluser.CreatedAt)
-
+	err := s.db.QueryScan(eluser, `select * from Users where ID = $1`, id)
 	if err == sql.ErrNoRows {
 
 		slog.Info("no user found with this email", "email", id)
@@ -128,28 +102,15 @@ func (s *userStore) GetUserById(id int) (*User, error) {
 	return eluser, nil
 }
 
-func (s *userStore) GetUserByEmail(email string) (*User, error) {
-	eluser := new(User)
-
-	slog.Info(email)
-	err := s.db.QueryRow(`select * from users where Email = $1 `, email).Scan(
-		&eluser.ID,
-		&eluser.Name,
-		&eluser.Email,
-		&eluser.Password,
-		&eluser.Phone,
-		&eluser.CreatedAt)
-
-	slog.Info(eluser.Email)
-
-	if err == sql.ErrNoRows {
-
-		slog.Info("no user found with this email", "email", email)
-		return nil, fmt.Errorf("user with email [%s] not found", email)
+func (s *userStore) SelectUserByEmail(email string) (*User, error) {
+	var eluser []*User
+	err := s.db.QueryScan(&eluser, `select * from Users where email = $1`, email)
+	if err == fmt.Errorf("not found") {
+		return nil, fmt.Errorf("user with email [%d] not found", email)
 	}
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
 	// }
 
-	return eluser, nil
+	return eluser[0], nil
 }

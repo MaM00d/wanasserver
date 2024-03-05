@@ -1,9 +1,8 @@
 package user
 
 import (
-	"database/sql"
-
 	api "Server/elapi"
+	db "Server/eldb"
 )
 
 type ElUser struct {
@@ -12,7 +11,7 @@ type ElUser struct {
 }
 
 // create object of struct apiserver to set the listen addr
-func NewElUser(db *sql.DB, elapi *api.ElApi) *ElUser {
+func NewElUser(db db.Storage, elapi *api.ElApi) *ElUser {
 	store := newUserStore(db)
 	eluser := &ElUser{
 		ap:    elapi,

@@ -2,11 +2,16 @@ package main
 
 import (
 	"log"
+
+	"github.com/joho/godotenv"
+
+	db "Server/eldb"
 )
 
 func main() {
+	godotenv.Load()
 	// fmt.Println("Yeah Buddy")
-	store, err := NewPostgresStore()
+	store, err := db.NewPostgresStore()
 	if err != nil {
 		log.Fatal(err)
 	}
