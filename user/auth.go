@@ -1,7 +1,9 @@
 package user
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -11,41 +13,51 @@ import (
 	api "Server/elapi"
 )
 
-func (eluser *ElUser) JWTAuthMiddleware(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("calling JWT auth middleware")
-	tokenString := r.Header.Get("x-jwt-token")
+func (eluser *ElUser) JWTAuthMiddleware(
+	elfunc api.ApiFunc,
+) api.ApiFunc {
+	return func(
+		w http.ResponseWriter,
+		r *http.Request,
+	) error {
+		slog.Info("calling JWT auth middleware")
+		tokenString := r.Header.Get("x-jwt-token")
 
-	token, err := detokenizejwt(tokenString)
-	if err != nil {
-		eluser.ap.PermissionDenied(w)
+		token, err := detokenizejwt(tokenString)
+		if err != nil {
+			if len(tokenString) == 0 {
+				slog.Error("no token in header")
+			} else {
+				slog.Error("detokenize", err)
+			}
+
+			return errors.New("invalid token")
+		}
+		if !token.Valid {
+
+			slog.Error("error validate")
+			return errors.New("invalid token")
+		}
+		userid := eluser.getIdFromVars(r)
+
+		euser, err := eluser.SelectUserById(userid)
+		if err != nil {
+
+			slog.Error("error getting user by id")
+			return errors.New("invalid token")
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+
+		if euser.ID != int(claims["userid"].(float64)) {
+			slog.Error("id in token not equal id in route")
+			return errors.New("invalid token")
+		}
+		if err != nil {
+			return errors.New("invalid token")
+		}
+		return elfunc(w, r)
 	}
-	if !token.Valid {
-
-		fmt.Println("err 2")
-		eluser.ap.PermissionDenied(w)
-	}
-	userid := eluser.getIdFromVars(r)
-
-	user, err := eluser.store.SelectUserById(userid)
-	if err != nil {
-
-		fmt.Println("err 3")
-		eluser.ap.PermissionDenied(w)
-		eluser.ap.PermissionDenied(w)
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-
-	if user.Email != claims["userid"] {
-
-		fmt.Println("err 4")
-		eluser.ap.PermissionDenied(w)
-	}
-
-	if err != nil {
-		eluser.ap.WriteJSON(w, http.StatusForbidden, api.ApiError{Error: "invalid token"})
-	}
-	return eluser.getUserByEmailFromVars(w, r)
 }
 
 func tokenizejwt(eluser *User) (string, error) {
@@ -77,7 +89,7 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) error {
 	id := s.getIdFromVars(r)
 
-	account, err := s.store.SelectUserById(id)
+	account, err := s.SelectUserById(id)
 	if err != nil {
 		return err
 	}

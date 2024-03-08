@@ -2,6 +2,7 @@ package elapi
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -42,8 +43,12 @@ func (ap *ElApi) MakeHTTPHandleFunc(f ApiFunc) http.HandlerFunc {
 	}
 }
 
-func (ap *ElApi) PermissionDenied(w http.ResponseWriter) {
-	ap.WriteJSON(w, http.StatusForbidden, ApiError{Error: "permission denied"})
+func (ap *ElApi) PermissionDenied(w http.ResponseWriter, r *http.Request) error {
+	return errors.New("permission denied")
+}
+
+func (ap *ElApi) Permissiondenied(w http.ResponseWriter) error {
+	return errors.New("permission denied")
 }
 
 func (ap *ElApi) GetFromVars(r *http.Request, elvar string) string {

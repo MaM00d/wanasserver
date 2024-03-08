@@ -24,7 +24,7 @@ func (s *ElPersona) getpersonas(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	elpersonas, err := s.store.GetPersonasByUserId(req.id)
+	elpersonas, err := s.GetPersonasByUserId(req.id)
 	if err != nil {
 		return err
 	}

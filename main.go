@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	ellog()
 	godotenv.Load()
 	// fmt.Println("Yeah Buddy")
 	store, err := db.NewPostgresStore()

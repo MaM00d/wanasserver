@@ -6,40 +6,44 @@ import (
 	"log/slog"
 
 	_ "github.com/lib/pq"
-
-	db "Server/eldb"
 )
 
-type PersonaStorage interface {
-	InsertPersona(*Persona) error
-	DeletePersona(int) error
-	UpdatePersona(*Persona) error
-	GetPersonaById(int) (*Persona, error)
-	GetPersonaByEmail(string) (*Persona, error)
-}
-
-type personaStore struct {
-	db db.Storage
-}
-
-func newPersonaStore(db db.Storage) *personaStore {
-	elstore := &personaStore{
-		db: db,
+func (s *ElPersona) InitDb() error {
+	if err := s.createPersonaTabel(); err != nil {
+		return err
 	}
-	elstore.InitDb()
-	return elstore
-}
+	if err := s.createuserfk(); err != nil {
+		return err
+	}
 
-func (s *personaStore) InitDb() error {
-	s.droptrigid()
-	s.dropfunctionid()
-	s.dropPersonaTabel()
-	s.createPersonaTabel()
-	s.createfunctionid()
+	if err := s.createfunctionid(); err != nil {
+		return err
+	}
+	if err := s.createtriggerid(); err != nil {
+		return err
+	}
+
 	return s.createtriggerid()
 }
 
-func (s *personaStore) dropPersonaTabel() error {
+func (s *ElPersona) DropDb() error {
+	if err := s.droptrigid(); err != nil {
+		return err
+	}
+	if err := s.dropfunctionid(); err != nil {
+		return err
+	}
+	if err := s.dropPersonaTabel(); err != nil {
+		return err
+	}
+	if err := s.dropuserfk(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ElPersona) dropPersonaTabel() error {
 	query := `
     drop table if exists Persona;
     `
@@ -47,7 +51,25 @@ func (s *personaStore) dropPersonaTabel() error {
 	return err
 }
 
-func (s *personaStore) dropfunctionid() error {
+func (s *ElPersona) dropuserfk() error {
+	query := `
+    drop CONSTRAINT if exists fk_persona_userid
+    `
+	err := s.db.Exec(query)
+	return err
+}
+
+func (s *ElPersona) createuserfk() error {
+	query := `
+
+    ALTER TABLE persona ADD CONSTRAINT fk_persona_useriD FOREIGN KEY(useriD)
+    REFERENCES users (id);
+    `
+	err := s.db.Exec(query)
+	return err
+}
+
+func (s *ElPersona) dropfunctionid() error {
 	query := `
     drop function if exists fn_trig_persona_pk;
     `
@@ -55,7 +77,7 @@ func (s *personaStore) dropfunctionid() error {
 	return err
 }
 
-func (s *personaStore) droptrigid() error {
+func (s *ElPersona) droptrigid() error {
 	query := `
     drop trigger if exists trig_persona_pk on persona;
     `
@@ -63,7 +85,7 @@ func (s *personaStore) droptrigid() error {
 	return err
 }
 
-func (s *personaStore) createPersonaTabel() error {
+func (s *ElPersona) createPersonaTabel() error {
 	query := `
             CREATE TABLE persona (
                 id int   ,
@@ -79,7 +101,7 @@ func (s *personaStore) createPersonaTabel() error {
 	return err
 }
 
-func (s *personaStore) createtriggerid() error {
+func (s *ElPersona) createtriggerid() error {
 	query := `
 
             CREATE TRIGGER trig_persona_pk
@@ -92,7 +114,7 @@ func (s *personaStore) createtriggerid() error {
 	return err
 }
 
-func (s *personaStore) createfunctionid() error {
+func (s *ElPersona) createfunctionid() error {
 	query := `
             CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
               RETURNS "pg_catalog"."trigger" AS $BODY$ 
@@ -103,13 +125,12 @@ func (s *personaStore) createfunctionid() error {
             $BODY$
               LANGUAGE plpgsql VOLATILE
               COST 100;
-
     `
 	err := s.db.Exec(query)
 	return err
 }
 
-func (s *personaStore) InsertPersona(elpersona *Persona) error {
+func (s *ElPersona) InsertPersona(elpersona *Persona) error {
 	query := `insert into Persona 
     (name,userid,createdat)
     values ($1,$2,$3)
@@ -127,15 +148,15 @@ func (s *personaStore) InsertPersona(elpersona *Persona) error {
 	return nil
 }
 
-func (s *personaStore) DeletePersona(int) error {
+func (s *ElPersona) DeletePersona(int) error {
 	return nil
 }
 
-func (s *personaStore) UpdatePersona(*Persona) error {
+func (s *ElPersona) UpdatePersona(*Persona) error {
 	return nil
 }
 
-// func (s *personaStore) GetPersonaById(int) (*Persona, error) {
+// func (s *ElPersona) GetPersonaById(int) (*Persona, error) {
 // 	return nil, nil
 // }
 
@@ -150,7 +171,7 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 	return elpersona, err
 }
 
-func (s *personaStore) GetPersonasByUserId(id int) ([]Persona, error) {
+func (s *ElPersona) GetPersonasByUserId(id int) ([]Persona, error) {
 	var personas []Persona
 	rows := s.db.QueryScan(personas, `select * from Personas where ID = $1`, id)
 

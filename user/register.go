@@ -39,7 +39,7 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// save user to database
-	if err := s.store.InsertUser(user); err != nil {
+	if err := s.InsertUser(user); err != nil {
 		return err
 	}
 

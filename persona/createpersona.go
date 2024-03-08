@@ -35,7 +35,7 @@ func (s *ElPersona) createpersona(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	if err := s.store.InsertPersona(persona); err != nil {
+	if err := s.InsertPersona(persona); err != nil {
 		return err
 	}
 
