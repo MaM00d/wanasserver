@@ -58,3 +58,7 @@ func (ap *ElApi) GetFromVars(r *http.Request, elvar string) string {
 func (ap *ElApi) Route(elroute string, elfunc ApiFunc, method string) {
 	ap.router.HandleFunc(elroute, ap.MakeHTTPHandleFunc(elfunc)).Methods(method)
 }
+
+func (ap *ElApi) AddMiddleware(mid mux.MiddlewareFunc) {
+	ap.router.Use(mid)
+}

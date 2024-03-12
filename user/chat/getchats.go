@@ -8,8 +8,7 @@ import (
 )
 
 type GetChatsRequest struct {
-	personaid int `json:"userid"`
-	chatid    int `json:"userid"`
+	id int `json:"userid"`
 }
 type GetChatsResponse struct {
 	chats []Chat `json:"chats"`
@@ -25,7 +24,7 @@ func (s *ElChat) getchats(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	elchats, err := s.store.GetChatsByPersonaId(req.personaid)
+	elchats, err := s.GetChatsByUserId(req.id)
 	if err != nil {
 		return err
 	}

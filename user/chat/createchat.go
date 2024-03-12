@@ -5,10 +5,13 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type CreateChatRequest struct {
-	PersonaID string `db:"personaid" json:"personaid"`
+	Name      string    `db:"name"      json:"name"`
+	UserID    string    `db:"userid"    json:"userid"`
+	CreatedAt time.Time `db:"createdat" json:"createdAt"`
 }
 
 func (s *ElChat) createchat(w http.ResponseWriter, r *http.Request) error {
@@ -19,19 +22,20 @@ func (s *ElChat) createchat(w http.ResponseWriter, r *http.Request) error {
 		slog.Error("decoding request body", "Model", "Chat")
 		return err
 	}
-	elpersonaid, err := strconv.Atoi(chatReq.PersonaID)
+	eluserid, err := strconv.Atoi(chatReq.UserID)
 	if err != nil {
 		return err
 	}
 
 	chat, err := NewChat(
-		elpersonaid,
+		chatReq.Name,
+		eluserid,
 	)
 	if err != nil {
 		return err
 	}
 
-	if err := s.store.InsertChat(chat); err != nil {
+	if err := s.InsertChat(chat); err != nil {
 		return err
 	}
 
