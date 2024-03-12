@@ -16,10 +16,15 @@ func (eluser *ElUser) AuthMiddleware(next http.Handler) http.Handler {
 		slog.Info("Middleware")
 		err := eluser.Authenticate(w, r)
 		if err != nil {
-			if r.URL.Path == "login" || r.URL.Path == "register" {
+			slog.Info("notAuthenticated", "Error", err)
+			if r.URL.Path == "/login" || r.URL.Path == "/register" {
+
+				slog.Info("NewUser")
 				next.ServeHTTP(w, r)
+			} else {
+				slog.Info("forbidden")
+				http.Error(w, "Forbidden", http.StatusForbidden)
 			}
-			http.Error(w, "Forbidden", http.StatusForbidden)
 		} else {
 			slog.Info("Authenticated")
 			// Call the next handler, which can be another middleware in the chain, or the final handler.
