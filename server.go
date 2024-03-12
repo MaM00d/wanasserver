@@ -7,9 +7,9 @@ import (
 	api "Server/elapi"
 	db "Server/eldb"
 	user "Server/user"
+	persona "Server/user/persona"
 )
 
-// persona "Server/persona"
 type APIServer struct {
 	listenAddr string
 	store      *db.Storage
@@ -25,10 +25,10 @@ func NewApiServer(listenAddr string, store *db.Storage) *APIServer {
 func (s *APIServer) Run() {
 	ap := api.NewElApi()
 	usr := user.NewElUser(s.store, ap)
-	// pers := persona.NewElPersona(s.store, ap)
-	InitRoutes(usr)
-	InitDb(usr)
-	// DropDb(pers, usr)
+	pers := persona.NewElPersona(s.store, ap)
+	InitRoutes(usr, pers)
+	DropDb(pers, usr)
+	InitDb(usr, pers)
 	// chat.NewElMsg(s.store.db, ap)
 	// logging
 	slog.Info("JSON API server runngin", "PORT", s.listenAddr)
@@ -44,7 +44,7 @@ type object interface {
 
 func DropDb(obj ...object) error {
 	for _, o := range obj {
-		if err := o.InitDb(); err != nil {
+		if err := o.DropDb(); err != nil {
 			return err
 		}
 	}

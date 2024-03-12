@@ -52,6 +52,9 @@ func NewPostgresStore() (*Storage, error) {
 func (s *Storage) Exec(query string) error {
 	resp, err := s.db.Exec(context.Background(), query)
 	slog.Info("SQL", "Response", resp)
+	if err != nil {
+		slog.Error("SQL", "query", query, "Exec", err)
+	}
 	return err
 }
 

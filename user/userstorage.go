@@ -22,7 +22,7 @@ func (s ElUser) DropDb() error {
 
 func (s ElUser) dropUserTabel() error {
 	query := `
-    drop table if exists Users;
+    drop table if exists users;
     `
 	err := s.db.Exec(query)
 	return err

@@ -23,10 +23,13 @@ func (s *ElPersona) InitDb() error {
 		return err
 	}
 
-	return s.createtriggerid()
+	return nil
 }
 
 func (s *ElPersona) DropDb() error {
+	if err := s.dropuserfk(); err != nil {
+		return err
+	}
 	if err := s.droptrigid(); err != nil {
 		return err
 	}
@@ -34,9 +37,6 @@ func (s *ElPersona) DropDb() error {
 		return err
 	}
 	if err := s.dropPersonaTabel(); err != nil {
-		return err
-	}
-	if err := s.dropuserfk(); err != nil {
 		return err
 	}
 
@@ -53,7 +53,8 @@ func (s *ElPersona) dropPersonaTabel() error {
 
 func (s *ElPersona) dropuserfk() error {
 	query := `
-    drop CONSTRAINT if exists fk_persona_userid
+    ALTER TABLE persona
+    drop CONSTRAINT fk_persona_userid;
     `
 	err := s.db.Exec(query)
 	return err
@@ -61,7 +62,6 @@ func (s *ElPersona) dropuserfk() error {
 
 func (s *ElPersona) createuserfk() error {
 	query := `
-
     ALTER TABLE persona ADD CONSTRAINT fk_persona_useriD FOREIGN KEY(useriD)
     REFERENCES users (id);
     `
