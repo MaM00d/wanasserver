@@ -9,55 +9,67 @@ import (
 	"strconv"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-
-	api "Server/elapi"
 )
 
-func (eluser *ElUser) JWTAuthMiddleware(
-	elfunc api.ApiFunc,
-) api.ApiFunc {
-	return func(
-		w http.ResponseWriter,
-		r *http.Request,
-	) error {
-		slog.Info("calling JWT auth middleware")
-		tokenString := r.Header.Get("x-jwt-token")
-
-		token, err := detokenizejwt(tokenString)
+func (eluser *ElUser) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		slog.Info("Middleware")
+		err := eluser.Authenticate(w, r)
 		if err != nil {
-			if len(tokenString) == 0 {
-				slog.Error("no token in header")
-			} else {
-				slog.Error("detokenize", err)
+			if r.URL.Path == "login" || r.URL.Path == "register" {
+				next.ServeHTTP(w, r)
 			}
+			http.Error(w, "Forbidden", http.StatusForbidden)
+		} else {
+			slog.Info("Authenticated")
+			// Call the next handler, which can be another middleware in the chain, or the final handler.
+			next.ServeHTTP(w, r)
 
-			return errors.New("invalid token")
 		}
-		if !token.Valid {
+	})
+}
 
-			slog.Error("error validate")
-			return errors.New("invalid token")
+func (eluser *ElUser) Authenticate(
+	w http.ResponseWriter,
+	r *http.Request,
+) error {
+	slog.Info("Authenticating")
+	tokenString := r.Header.Get("x-jwt-token")
+
+	token, err := detokenizejwt(tokenString)
+	if err != nil {
+		if len(tokenString) == 0 {
+			slog.Error("no token in header")
+		} else {
+			slog.Error("detokenize", err)
 		}
-		userid := eluser.getIdFromVars(r)
 
-		euser, err := eluser.SelectUserById(userid)
-		if err != nil {
-
-			slog.Error("error getting user by id")
-			return errors.New("invalid token")
-		}
-
-		claims := token.Claims.(jwt.MapClaims)
-
-		if euser.ID != int(claims["userid"].(float64)) {
-			slog.Error("id in token not equal id in route")
-			return errors.New("invalid token")
-		}
-		if err != nil {
-			return errors.New("invalid token")
-		}
-		return elfunc(w, r)
+		return errors.New("invalid token")
 	}
+	if !token.Valid {
+
+		slog.Error("error validate")
+		return errors.New("invalid token")
+	}
+	userid := eluser.getIdFromVars(r)
+
+	euser, err := eluser.SelectUserById(userid)
+	if err != nil {
+
+		slog.Error("error getting user by id")
+		return errors.New("invalid token")
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	if euser.ID != int(claims["userid"].(float64)) {
+		slog.Error("id in token not equal id in route")
+		return errors.New("invalid token")
+	}
+	if err != nil {
+		return errors.New("invalid token")
+	}
+	return nil
 }
 
 func tokenizejwt(eluser *User) (string, error) {
