@@ -6,29 +6,7 @@ import (
 	"log/slog"
 )
 
-func (s ElUser) InitDb() error {
-	if err := s.createUserTabel(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s ElUser) DropDb() error {
-	if err := s.dropUserTabel(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s ElUser) dropUserTabel() error {
-	query := `
-    drop table if exists users;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s ElUser) createUserTabel() error {
+func (s ElUser) createUserTable() error {
 	query := `
         CREATE TABLE IF NOT EXISTS Users (
             ID serial   NOT NULL,
@@ -46,7 +24,15 @@ func (s ElUser) createUserTabel() error {
 	return err
 }
 
-func (s ElUser) InsertUser(user *User) error {
+func (s ElUser) dropUserTabel() error {
+	query := `
+    drop table if exists users;
+    `
+	err := s.db.Exec(query)
+	return err
+}
+
+func (s ElUser) Insert(user *User) error {
 	query := `insert into Users 
     (id,Name,Email,Password,Phone,CreatedAt)
     values ($1,$2,$3,$4,$5,$6)

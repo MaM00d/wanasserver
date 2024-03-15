@@ -19,13 +19,18 @@ type Storage struct {
 	ctx context.Context
 }
 
+type entity interface {
+	create() error
+	drop() error
+}
+
 func NewPostgresStore() (*Storage, error) {
+	slog.Info("connecting to database")
 	ctx := context.Background()
 	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		return nil, err
 	}
-
 	db, err := pgxpool.ConnectConfig(ctx, config)
 	if err != nil {
 		return nil, err
@@ -35,18 +40,6 @@ func NewPostgresStore() (*Storage, error) {
 		db:  db,
 		ctx: ctx,
 	}, nil
-
-	// connStr := "user=tme password='1598753' dbname=wanas sslmode=disable"
-	// db, err := sql.Open("postgres", connStr)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if err := db.Ping(); err != nil {
-	// 	return nil, err
-	// }
-	// return &Storage{
-	// 	db: db,
-	// }, nil
 }
 
 func (s *Storage) Exec(query string) error {

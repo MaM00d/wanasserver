@@ -8,6 +8,8 @@ import (
 	db "Server/eldb"
 	user "Server/user"
 	persona "Server/user/persona"
+	chat "Server/user/persona/chat"
+	msg "Server/user/persona/chat/msg"
 )
 
 type APIServer struct {
@@ -16,6 +18,7 @@ type APIServer struct {
 }
 
 func NewApiServer(listenAddr string, store *db.Storage) *APIServer {
+	slog.Info("createing server")
 	return &APIServer{
 		listenAddr: listenAddr,
 		store:      store,
@@ -23,19 +26,25 @@ func NewApiServer(listenAddr string, store *db.Storage) *APIServer {
 }
 
 func (s *APIServer) Run() {
+	slog.Info("start")
 	ap := api.NewElApi()
 	usr := user.NewElUser(s.store, ap)
 	pers := persona.NewElPersona(s.store, ap)
-	InitRoutes(usr, pers)
-	DropDb(pers, usr)
-	InitDb(usr, pers)
-	// chat.NewElMsg(s.store.db, ap)
+	chat := chat.NewElChat(s.store, ap)
+	msg := msg.NewElMsg(s.store, ap)
+	InitRoutes(usr, pers, chat, msg)
+	DropDb(msg, chat, pers, usr)
+	InitDb(usr, pers, chat, msg)
 	// logging
 	slog.Info("JSON API server runngin", "PORT", s.listenAddr)
 	// start listening on addresss and sending to router
 	http.ListenAndServe(s.listenAddr, ap.GetRouter())
 }
 
+type entity interface {
+	create() error
+	drop() error
+}
 type object interface {
 	InitDb() error
 	DropDb() error

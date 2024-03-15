@@ -34,6 +34,15 @@ func (eluser *ElUser) AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func Getidfromheader(r *http.Request) int {
+	tokenString := r.Header.Get("x-jwt-token")
+
+	token, _ := detokenizejwt(tokenString)
+
+	claims := token.Claims.(jwt.MapClaims)
+	return int(claims["userid"].(float64))
+}
+
 func (eluser *ElUser) Authenticate(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -56,21 +65,14 @@ func (eluser *ElUser) Authenticate(
 		slog.Error("error validate")
 		return errors.New("invalid token")
 	}
-	userid := eluser.getIdFromVars(r)
-
-	euser, err := eluser.SelectUserById(userid)
-	if err != nil {
-
-		slog.Error("error getting user by id")
-		return errors.New("invalid token")
-	}
 
 	claims := token.Claims.(jwt.MapClaims)
+	if _, err := eluser.SelectUserById(int(claims["userid"].(float64))); err != nil {
 
-	if euser.ID != int(claims["userid"].(float64)) {
-		slog.Error("id in token not equal id in route")
+		slog.Error("no user in database with that id")
 		return errors.New("invalid token")
 	}
+
 	if err != nil {
 		return errors.New("invalid token")
 	}

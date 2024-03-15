@@ -1,17 +1,14 @@
 package persona
 
 import (
+	user "Server/user"
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"strconv"
-	"time"
 )
 
 type CreatePersonaRequest struct {
-	Name      string    `db:"name"      json:"name"`
-	UserID    string    `db:"userid"    json:"userid"`
-	CreatedAt time.Time `db:"createdat" json:"createdAt"`
+	Name string `db:"name"      json:"name"`
 }
 
 func (s *ElPersona) createpersona(w http.ResponseWriter, r *http.Request) error {
@@ -22,11 +19,7 @@ func (s *ElPersona) createpersona(w http.ResponseWriter, r *http.Request) error 
 		slog.Error("decoding request body", "Model", "Persona")
 		return err
 	}
-	eluserid, err := strconv.Atoi(personaReq.UserID)
-	if err != nil {
-		return err
-	}
-
+	eluserid := user.Getidfromheader(r)
 	persona, err := NewPersona(
 		personaReq.Name,
 		eluserid,

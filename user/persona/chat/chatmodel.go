@@ -13,8 +13,6 @@ type Chat struct {
 
 type ChatView struct {
 	ID        int       `db:"id"        json:"id"`
-	PersonaID int       `db:"personaid"    json:"personaid"`
-	UserID    int       `db:"userid"    json:"userid"`
 	CreatedAt time.Time `db:"createdat" json:"createdAt"`
 }
 

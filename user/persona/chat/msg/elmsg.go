@@ -1,4 +1,4 @@
-package persona
+package msg
 
 import (
 	"log/slog"
@@ -7,28 +7,31 @@ import (
 	db "Server/eldb"
 )
 
-type ElPersona struct {
+type ElMsg struct {
 	ap *api.ElApi
 	db *db.Storage
 }
 
 // create object of struct apiserver to set the listen addr
-func NewElPersona(db *db.Storage, elapi *api.ElApi) *ElPersona {
-	elpersona := &ElPersona{
+func NewElMsg(db *db.Storage, elapi *api.ElApi) *ElMsg {
+	elmsg := &ElMsg{
 		ap: elapi,
 		db: db,
 	}
-	return elpersona
+	return elmsg
 }
 
-func (elpersona *ElPersona) AddRoutes() {
-	slog.Info("ElPersona Routes")
-	elpersona.ap.Route("/persona", elpersona.createpersona, "POST")
-	elpersona.ap.Route("/persona", elpersona.getpersonas, "GET")
+func (elmsg *ElMsg) AddRoutes() {
+	slog.Info("ElMsg Routes")
+	elmsg.ap.Route("/persona/{personaid}/chat/{chatid}", elmsg.sendmsg, "POST")
+	elmsg.ap.Route("/persona/{personaid}/chat/{chatid}", elmsg.getmsgs, "GET")
 }
 
-func (s *ElPersona) InitDb() error {
-	if err := s.createPersonaTabel(); err != nil {
+func (s *ElMsg) InitDb() error {
+	if err := s.createMsgTabel(); err != nil {
+		return err
+	}
+	if err := s.createpersonafk(); err != nil {
 		return err
 	}
 	if err := s.createuserfk(); err != nil {
@@ -45,7 +48,10 @@ func (s *ElPersona) InitDb() error {
 	return nil
 }
 
-func (s *ElPersona) DropDb() error {
+func (s *ElMsg) DropDb() error {
+	if err := s.droppersonafk(); err != nil {
+		return err
+	}
 	if err := s.dropuserfk(); err != nil {
 		return err
 	}
@@ -55,7 +61,7 @@ func (s *ElPersona) DropDb() error {
 	if err := s.dropfunctionid(); err != nil {
 		return err
 	}
-	if err := s.dropPersonaTabel(); err != nil {
+	if err := s.dropMsgTabel(); err != nil {
 		return err
 	}
 

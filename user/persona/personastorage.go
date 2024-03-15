@@ -8,53 +8,25 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func (s *ElPersona) InitDb() error {
-	if err := s.createPersonaTabel(); err != nil {
-		return err
-	}
-	if err := s.createuserfk(); err != nil {
-		return err
-	}
-
-	if err := s.createfunctionid(); err != nil {
-		return err
-	}
-	if err := s.createtriggerid(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *ElPersona) DropDb() error {
-	if err := s.dropuserfk(); err != nil {
-		return err
-	}
-	if err := s.droptrigid(); err != nil {
-		return err
-	}
-	if err := s.dropfunctionid(); err != nil {
-		return err
-	}
-	if err := s.dropPersonaTabel(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *ElPersona) dropPersonaTabel() error {
+func (s *ElPersona) createPersonaTabel() error {
 	query := `
-    drop table if exists Persona;
+            CREATE TABLE if not exists persona (
+                id int unique  ,
+                name char(50)   NOT NULL,
+                userid int   NOT NULL,
+                createdat timestamp   NOT NULL,
+                CONSTRAINT pk_persona PRIMARY KEY (
+                    id,useriD
+                 )
+            );
     `
 	err := s.db.Exec(query)
 	return err
 }
 
-func (s *ElPersona) dropuserfk() error {
+func (s *ElPersona) dropPersonaTabel() error {
 	query := `
-    ALTER TABLE persona
-    drop CONSTRAINT fk_persona_userid;
+    drop table if exists Persona;
     `
 	err := s.db.Exec(query)
 	return err
@@ -69,33 +41,34 @@ func (s *ElPersona) createuserfk() error {
 	return err
 }
 
+func (s *ElPersona) dropuserfk() error {
+	query := `
+    ALTER TABLE persona
+    drop CONSTRAINT fk_persona_userid;
+    `
+	err := s.db.Exec(query)
+	return err
+}
+
+func (s *ElPersona) createfunctionid() error {
+	query := `
+            CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
+              RETURNS "pg_catalog"."trigger" AS $BODY$ 
+            begin
+            new.id = (select count(*)+1 from persona where userid=new.userid);
+            return NEW;
+            end;
+            $BODY$
+              LANGUAGE plpgsql VOLATILE
+              COST 100;
+    `
+	err := s.db.Exec(query)
+	return err
+}
+
 func (s *ElPersona) dropfunctionid() error {
 	query := `
     drop function if exists fn_trig_persona_pk;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElPersona) droptrigid() error {
-	query := `
-    drop trigger if exists trig_persona_pk on persona;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElPersona) createPersonaTabel() error {
-	query := `
-            CREATE TABLE persona (
-                id int   ,
-                name char(50)   NOT NULL,
-                userid int   NOT NULL,
-                createdat timestamp   NOT NULL,
-                CONSTRAINT pk_persona PRIMARY KEY (
-                    id,useriD
-                 )
-            );
     `
 	err := s.db.Exec(query)
 	return err
@@ -114,17 +87,9 @@ func (s *ElPersona) createtriggerid() error {
 	return err
 }
 
-func (s *ElPersona) createfunctionid() error {
+func (s *ElPersona) droptrigid() error {
 	query := `
-            CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
-              RETURNS "pg_catalog"."trigger" AS $BODY$ 
-            begin
-            new.id = (select count(*)+1 from persona where userid=new.userid);
-            return NEW;
-            end;
-            $BODY$
-              LANGUAGE plpgsql VOLATILE
-              COST 100;
+    drop trigger if exists trig_persona_pk on persona;
     `
 	err := s.db.Exec(query)
 	return err
@@ -171,9 +136,10 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 	return elpersona, err
 }
 
-func (s *ElPersona) GetPersonasByUserId(id int) ([]Persona, error) {
-	var personas []Persona
-	rows := s.db.QueryScan(personas, `select * from Personas where ID = $1`, id)
+func (s *ElPersona) GetPersonasByUserId(id int) ([]*Persona, error) {
+	var personas []*Persona
+
+	rows := s.db.QueryScan(&personas, `select * from Persona where userid = $1`, id)
 
 	if rows == fmt.Errorf("not found") {
 

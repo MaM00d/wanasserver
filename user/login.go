@@ -29,7 +29,8 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 
 	acc, err := s.SelectUserByEmail(req.Email)
 	if err != nil {
-		return err
+		return fmt.Errorf("no user with that email")
+		// return err
 	}
 
 	slog.Info(req.Password)
