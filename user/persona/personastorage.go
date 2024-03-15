@@ -136,8 +136,8 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 	return elpersona, err
 }
 
-func (s *ElPersona) GetPersonasByUserId(id int) ([]*Persona, error) {
-	var personas []*Persona
+func (s *ElPersona) GetPersonasByUserId(id int) ([]*PersonaView, error) {
+	var personas []*PersonaView
 
 	rows := s.db.QueryScan(&personas, `select * from Persona where userid = $1`, id)
 
