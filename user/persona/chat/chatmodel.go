@@ -12,8 +12,7 @@ type Chat struct {
 }
 
 type ChatView struct {
-	ID        int       `db:"id"        json:"id"`
-	CreatedAt time.Time `db:"createdat" json:"createdAt"`
+	ID int `db:"id"        json:"id"`
 }
 
 func NewChat(personaid, userid int) (*Chat, error) {

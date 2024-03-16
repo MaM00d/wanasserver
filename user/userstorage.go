@@ -1,7 +1,6 @@
 package user
 
 import (
-	"database/sql"
 	"fmt"
 	"log/slog"
 )
@@ -63,8 +62,10 @@ func (s ElUser) UpdateUser(*User) error {
 func (s ElUser) SelectUserById(id int) (*User, error) {
 	var eluser []*User
 	err := s.db.QueryScan(&eluser, `select * from Users where ID = $1`, id)
-	if err == sql.ErrNoRows {
-
+	if err != nil {
+		return nil, err
+	}
+	if len(eluser) == 0 {
 		slog.Info("no user found with this email", "email", id)
 		return nil, fmt.Errorf("user with email [%d] not found", id)
 	}

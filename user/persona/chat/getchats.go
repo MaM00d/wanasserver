@@ -8,7 +8,7 @@ import (
 )
 
 func (s *ElChat) getchats(w http.ResponseWriter, r *http.Request) error {
-	slog.Info("Handling Login")
+	slog.Info("Handling getchats")
 	eluserid := user.Getidfromheader(r)
 	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
 	elchats, err := s.GetChatsByUserId(elpersonaid, eluserid)

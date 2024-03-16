@@ -37,7 +37,10 @@ func (eluser *ElUser) AuthMiddleware(next http.Handler) http.Handler {
 func Getidfromheader(r *http.Request) int {
 	tokenString := r.Header.Get("x-jwt-token")
 
-	token, _ := detokenizejwt(tokenString)
+	token, err := detokenizejwt(tokenString)
+	if err != nil {
+		return -1
+	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	return int(claims["userid"].(float64))
@@ -105,15 +108,16 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func (s *ElUser) getUserByEmailFromVars(w http.ResponseWriter, r *http.Request) error {
-	id := s.getIdFromVars(r)
+func (s *ElUser) getUserByIDFromVars(w http.ResponseWriter, r *http.Request) error {
+	// id := s.getIdFromVars(r)
+	id := Getidfromheader(r)
 
 	account, err := s.SelectUserById(id)
 	if err != nil {
 		return err
 	}
 
-	return s.ap.WriteJSON(w, http.StatusOK, account)
+	return s.ap.WriteJSON(w, http.StatusOK, account.ID)
 
 	// if r.Method == "DELETE" {
 	// 	return s.handleDeleteAccount(w, r)

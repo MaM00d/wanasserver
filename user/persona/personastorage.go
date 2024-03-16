@@ -139,7 +139,7 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 func (s *ElPersona) GetPersonasByUserId(id int) ([]*PersonaView, error) {
 	var personas []*PersonaView
 
-	rows := s.db.QueryScan(&personas, `select * from Persona where userid = $1`, id)
+	rows := s.db.QueryScan(&personas, `select id, name from Persona where userid = $1`, id)
 
 	if rows == fmt.Errorf("not found") {
 

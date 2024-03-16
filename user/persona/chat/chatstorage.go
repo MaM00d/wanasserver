@@ -152,10 +152,10 @@ func scanIntoAccount(rows *sql.Rows) (*Chat, error) {
 	return elchat, err
 }
 
-func (s *ElChat) GetChatsByUserId(personaid, userid int) ([]Chat, error) {
-	var chats []Chat
+func (s *ElChat) GetChatsByUserId(personaid, userid int) ([]*ChatView, error) {
+	var chats []*ChatView
 
-	rows := s.db.QueryScan(chats, `select * from Chats where userid = $1 and personaid = $2`, userid, personaid)
+	rows := s.db.QueryScan(&chats, `select id from Chat where userid = $1 and personaid = $2`, userid, personaid)
 
 	if rows == fmt.Errorf("not found") {
 
