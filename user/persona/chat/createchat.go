@@ -11,15 +11,19 @@ func (s *ElChat) createchat(w http.ResponseWriter, r *http.Request) error {
 	// decode json from request
 	slog.Info("Handling Create Chat")
 	eluserid := user.Getidfromheader(r)
+	if eluserid < 0 {
+		s.ap.WriteError(w, http.StatusUnauthorized, "invalid token")
+	}
 
 	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
-	chat, err := NewChat(
-		elpersonaid,
-		eluserid,
-	)
 	if err != nil {
 		return err
 	}
+
+	chat := NewChat(
+		elpersonaid,
+		eluserid,
+	)
 
 	if err := s.InsertChat(chat); err != nil {
 		return err

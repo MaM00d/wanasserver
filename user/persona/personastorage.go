@@ -139,12 +139,13 @@ func scanIntoAccount(rows *sql.Rows) (*Persona, error) {
 func (s *ElPersona) GetPersonasByUserId(id int) ([]*PersonaView, error) {
 	var personas []*PersonaView
 
-	rows := s.db.QueryScan(&personas, `select id, name from Persona where userid = $1`, id)
-
-	if rows == fmt.Errorf("not found") {
-
-		slog.Error("GetPersonasByUserId", "id", id)
-		return nil, fmt.Errorf("persona with id [%d] not found", id)
+	err := s.db.QueryScan(&personas, `select id, name from Persona where userid = $1`, id)
+	if err != nil {
+		return nil, err
 	}
+	if len(personas) == 0 {
+		return nil, s.db.NotFound
+	}
+
 	return personas, nil
 }

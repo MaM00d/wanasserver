@@ -18,12 +18,12 @@ type MsgView struct {
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 }
 
-func NewMsg(chatid, personaid, userid int, message string) (*Msg, error) {
+func NewMsg(chatid, personaid, userid int, message string) *Msg {
 	return &Msg{
 		ChatID:    chatid,
 		PersonaID: personaid,
 		UserID:    userid,
 		Message:   message,
 		CreatedAt: time.Now().UTC(),
-	}, nil
+	}
 }

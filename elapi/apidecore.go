@@ -35,6 +35,12 @@ func (ap *ElApi) WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
+func (ap *ElApi) WriteError(w http.ResponseWriter, status int, elerror string) error {
+	http.Error(w, elerror, status)
+
+	return nil
+}
+
 func (ap *ElApi) MakeHTTPHandleFunc(f ApiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {

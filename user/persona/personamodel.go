@@ -16,10 +16,10 @@ type PersonaView struct {
 	Name string `db:"name"      json:"name"`
 }
 
-func NewPersona(name string, userid int) (*Persona, error) {
+func NewPersona(name string, userid int) *Persona {
 	return &Persona{
 		Name:      name,
 		UserID:    userid,
 		CreatedAt: time.Now().UTC(),
-	}, nil
+	}
 }

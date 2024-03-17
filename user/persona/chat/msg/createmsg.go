@@ -22,9 +22,13 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	eluserid := user.Getidfromheader(r)
+	if eluserid < 0 {
+		s.ap.WriteError(w, http.StatusUnauthorized, "invalid token")
+	}
+
 	elchatid, err := strconv.Atoi(s.ap.GetFromVars(r, "chatid"))
 	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
-	msg, err := NewMsg(
+	msg := NewMsg(
 		elchatid,
 		elpersonaid,
 		eluserid,

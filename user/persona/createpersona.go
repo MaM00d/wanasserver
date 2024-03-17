@@ -20,14 +20,13 @@ func (s *ElPersona) createpersona(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 	eluserid := user.Getidfromheader(r)
-	persona, err := NewPersona(
+	if eluserid < 0 {
+		s.ap.WriteError(w, http.StatusUnauthorized, "invalid token")
+	}
+	persona := NewPersona(
 		personaReq.Name,
 		eluserid,
 	)
-	if err != nil {
-		return err
-	}
-
 	if err := s.InsertPersona(persona); err != nil {
 		return err
 	}

@@ -61,23 +61,23 @@ func (eluser *ElUser) Authenticate(
 			slog.Error("detokenize", err)
 		}
 
-		return errors.New("invalid token")
+		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
 	}
 	if !token.Valid {
 
 		slog.Error("error validate")
-		return errors.New("invalid token")
+		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	if _, err := eluser.SelectUserById(int(claims["userid"].(float64))); err != nil {
 
 		slog.Error("no user in database with that id")
-		return errors.New("invalid token")
+		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
 	}
 
 	if err != nil {
-		return errors.New("invalid token")
+		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
 	}
 	return nil
 }

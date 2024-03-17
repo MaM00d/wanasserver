@@ -3,7 +3,7 @@ package eldb
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"log/slog"
 	"os"
 
@@ -15,8 +15,9 @@ import (
 
 type Storage struct {
 	// db *sql.DB
-	db  *pgxpool.Pool
-	ctx context.Context
+	db       *pgxpool.Pool
+	ctx      context.Context
+	NotFound error
 }
 
 type entity interface {
@@ -37,8 +38,9 @@ func NewPostgresStore() (*Storage, error) {
 	}
 
 	return &Storage{
-		db:  db,
-		ctx: ctx,
+		db:       db,
+		ctx:      ctx,
+		NotFound: errors.New("No Row Found in Db"),
 	}, nil
 }
 
@@ -72,9 +74,6 @@ func (s *Storage) Scan(rows *sql.Rows, obj ...any) error {
 
 func (s *Storage) QueryScan(obj interface{}, query string, args ...any) error {
 	err := pgxscan.Select(s.ctx, s.db, obj, query, args...)
-	if err == pgx.ErrNoRows {
-		return fmt.Errorf("not found")
-	}
 	if err != nil {
 		slog.Error("SQL", "QueryScan", err)
 		return err

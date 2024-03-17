@@ -79,9 +79,13 @@ func (s ElUser) SelectUserById(id int) (*User, error) {
 func (s ElUser) SelectUserByEmail(email string) (*User, error) {
 	var eluser []*User
 	err := s.db.QueryScan(&eluser, `select * from Users where email = $1`, email)
-	if err == fmt.Errorf("not found") {
-		return nil, fmt.Errorf("user with email [%d] not found", email)
+	if err != nil {
+		return nil, err
 	}
+	if len(eluser) == 0 {
+		return nil, s.db.NotFound
+	}
+
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
 	// }

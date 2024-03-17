@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -28,14 +27,14 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	acc, err := s.SelectUserByEmail(req.Email)
-	if err != nil {
-		return fmt.Errorf("no user with that email")
-		// return err
+	if err == s.db.NotFound {
+		slog.Error("no user found with this email")
+		return s.ap.WriteError(w, http.StatusNotFound, "No user found with this Email")
 	}
 
 	slog.Info(req.Password)
 	if !acc.ValidPassword(req.Password) {
-		return fmt.Errorf("not authenticated")
+		return s.ap.WriteError(w, http.StatusUnauthorized, "Wrong Password")
 	}
 
 	token, err := tokenizejwt(acc)
@@ -47,6 +46,5 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 		Token: token,
 		Email: acc.Email,
 	}
-
 	return s.ap.WriteJSON(w, http.StatusOK, resp)
 }

@@ -15,10 +15,10 @@ type ChatView struct {
 	ID int `db:"id"        json:"id"`
 }
 
-func NewChat(personaid, userid int) (*Chat, error) {
+func NewChat(personaid, userid int) *Chat {
 	return &Chat{
 		PersonaID: personaid,
 		UserID:    userid,
 		CreatedAt: time.Now().UTC(),
-	}, nil
+	}
 }

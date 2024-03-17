@@ -38,11 +38,24 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	if usr, _ := s.SelectUserByEmail(userReq.Email); usr != nil {
+		slog.Error("user with email exist")
+		return s.ap.WriteError(w, http.StatusConflict, "User exsists with that email")
+	}
 	// save user to database
 	if err := s.Insert(user); err != nil {
 		return err
 	}
 
 	slog.Info("Successfully Registered")
-	return s.ap.WriteJSON(w, http.StatusOK, user)
+
+	token, err := tokenizejwt(user)
+	if err != nil {
+		return err
+	}
+	resp := LoginResponse{
+		Token: token,
+		Email: user.Email,
+	}
+	return s.ap.WriteJSON(w, http.StatusOK, resp)
 }
