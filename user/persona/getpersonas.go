@@ -2,7 +2,6 @@ package persona
 
 import (
 	"Server/user"
-	"errors"
 	"log/slog"
 	"net/http"
 )
@@ -15,7 +14,7 @@ func (s *ElPersona) getpersonas(w http.ResponseWriter, r *http.Request) error {
 	}
 	elpersonas, err := s.GetPersonasByUserId(eluserid)
 	if err != nil {
-		if errors.As(err, s.db.NotFound) {
+		if err == s.db.NotFound {
 			return s.ap.WriteError(w, http.StatusOK, "")
 		}
 

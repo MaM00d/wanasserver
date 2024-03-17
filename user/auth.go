@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,11 +18,8 @@ func (eluser *ElUser) AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			slog.Info("notAuthenticated", "Error", err)
 			if r.URL.Path == "/login" || r.URL.Path == "/register" {
-
-				slog.Info("NewUser")
 				next.ServeHTTP(w, r)
 			} else {
-				slog.Info("forbidden")
 				http.Error(w, "Forbidden", http.StatusForbidden)
 			}
 		} else {
@@ -60,23 +58,23 @@ func (eluser *ElUser) Authenticate(
 			slog.Error("detokenize", err)
 		}
 
-		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
+		return errors.New("invalid token")
 	}
 	if !token.Valid {
 
 		slog.Error("error validate")
-		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
+		return errors.New("invalid token")
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
 	if _, err := eluser.SelectUserById(int(claims["userid"].(float64))); err != nil {
 
 		slog.Error("no user in database with that id")
-		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
+		return errors.New("invalid token")
 	}
 
 	if err != nil {
-		return eluser.ap.WriteError(w, http.StatusUnauthorized, "Invalid session token")
+		return errors.New("invalid token")
 	}
 	return nil
 }
@@ -107,12 +105,15 @@ func detokenizejwt(tokenString string) (*jwt.Token, error) {
 	})
 }
 
-func (s *ElUser) getUserByIDFromVars(w http.ResponseWriter, r *http.Request) error {
+func (s *ElUser) getUser(w http.ResponseWriter, r *http.Request) error {
 	// id := s.getIdFromVars(r)
 	id := Getidfromheader(r)
 
 	account, err := s.SelectUserById(id)
 	if err != nil {
+		if err == s.db.NotFound {
+			return s.ap.WriteError(w, http.StatusNotFound, "no user found with this id")
+		}
 		return err
 	}
 

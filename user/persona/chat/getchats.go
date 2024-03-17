@@ -2,7 +2,6 @@ package chat
 
 import (
 	"Server/user"
-	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -17,7 +16,7 @@ func (s *ElChat) getchats(w http.ResponseWriter, r *http.Request) error {
 	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
 	elchats, err := s.GetChatsByUserId(elpersonaid, eluserid)
 	if err != nil {
-		if errors.As(err, s.db.NotFound) {
+		if err == s.db.NotFound {
 			return s.ap.WriteError(w, http.StatusOK, "")
 		}
 		return err

@@ -1,10 +1,5 @@
 package user
 
-import (
-	"fmt"
-	"log/slog"
-)
-
 func (s ElUser) createUserTable() error {
 	query := `
         CREATE TABLE IF NOT EXISTS Users (
@@ -66,9 +61,9 @@ func (s ElUser) SelectUserById(id int) (*User, error) {
 		return nil, err
 	}
 	if len(eluser) == 0 {
-		slog.Info("no user found with this email", "email", id)
-		return nil, fmt.Errorf("user with email [%d] not found", id)
+		return nil, s.db.NotFound
 	}
+
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
 	// }
