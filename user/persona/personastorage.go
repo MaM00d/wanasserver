@@ -2,7 +2,6 @@ package persona
 
 import (
 	"database/sql"
-	"fmt"
 	"log/slog"
 
 	_ "github.com/lib/pq"
