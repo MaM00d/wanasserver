@@ -8,14 +8,17 @@ import (
 	"strconv"
 )
 
-type CreateMsgRequest struct {
+type MsgRequest struct {
+	Message string `db:"message" json:"message"`
+}
+type MsgResponse struct {
 	Message string `db:"message" json:"message"`
 }
 
 func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	// decode json from request
 	slog.Info("Handling Create Msg")
-	msgReq := new(CreateMsgRequest)
+	msgReq := new(MsgRequest)
 	if err := json.NewDecoder(r.Body).Decode(msgReq); err != nil {
 		slog.Error("decoding request body", "Model", "Msg")
 		return err
@@ -42,6 +45,9 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	resp := MsgResponse{
+		Message: "hello from ai",
+	}
 	slog.Info("Successfully Registered")
-	return s.ap.WriteJSON(w, http.StatusOK, msg)
+	return s.ap.WriteJSON(w, http.StatusOK, resp)
 }

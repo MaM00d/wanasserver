@@ -13,11 +13,16 @@ func (s *ElChat) getchats(w http.ResponseWriter, r *http.Request) error {
 	if eluserid < 0 {
 		s.ap.WriteError(w, http.StatusUnauthorized, "invalid token")
 	}
-	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
+	personaid := s.ap.GetFromVars(r, "personaid")
+
+	elpersonaid, err := strconv.Atoi(personaid)
 	elchats, err := s.GetChatsByUserId(elpersonaid, eluserid)
 	if err != nil {
 		if err == s.db.NotFound {
 			return s.ap.WriteError(w, http.StatusOK, "")
+		}
+		if err == s.PersonaDoesnotExsist {
+			return s.ap.WriteError(w, http.StatusNotFound, "Persona doesn't exsist")
 		}
 		return err
 	}

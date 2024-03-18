@@ -25,7 +25,7 @@ func NewElUser(db *db.Storage, elapi *api.ElApi) *ElUser {
 func (eluser *ElUser) AddRoutes() {
 	eluser.ap.Route("/login", eluser.Login, "POST")
 	eluser.ap.Route("/register", eluser.Register, "POST")
-	eluser.ap.Route("/user/", eluser.getUser, "GET")
+	eluser.ap.Route("/user", eluser.getUser, "GET")
 	eluser.ap.GetRouter().Use(eluser.AuthMiddleware)
 }
 

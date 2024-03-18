@@ -32,5 +32,5 @@ func (s *ElPersona) createpersona(w http.ResponseWriter, r *http.Request) error 
 	}
 
 	slog.Info("Successfully Registered")
-	return s.ap.WriteJSON(w, http.StatusOK, persona)
+	return s.ap.WriteJSON(w, http.StatusOK, "persona created Successfully")
 }

@@ -1,8 +1,8 @@
 package chat
 
 import (
+	"Server/user/persona"
 	"database/sql"
-	"fmt"
 	"log/slog"
 
 	_ "github.com/lib/pq"
@@ -154,13 +154,22 @@ func scanIntoAccount(rows *sql.Rows) (*Chat, error) {
 
 func (s *ElChat) GetChatsByUserId(personaid, userid int) ([]*ChatView, error) {
 	var chats []*ChatView
+	var pers []*persona.PersonaView
 
-	rows := s.db.QueryScan(&chats, `select id from Chat where userid = $1 and personaid = $2`, userid, personaid)
-
-	if rows == fmt.Errorf("not found") {
-
-		slog.Error("GetChatsByUserId", "id", userid)
-		return nil, fmt.Errorf("chat with id [%d] not found", userid)
+	if err := s.db.QueryScan(&pers, `select id, name from persona where userid = $1 and id = $2`, userid, personaid); err != nil {
+		return nil, err
 	}
+	if len(pers) == 0 {
+		return nil, s.PersonaDoesnotExsist
+	}
+
+	err := s.db.QueryScan(&chats, `select id from Chat where userid = $1 and personaid = $2`, userid, personaid)
+	if err != nil {
+		return nil, err
+	}
+	if len(chats) == 0 {
+		return nil, s.db.NotFound
+	}
+
 	return chats, nil
 }

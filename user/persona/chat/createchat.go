@@ -30,5 +30,5 @@ func (s *ElChat) createchat(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	slog.Info("created chat")
-	return s.ap.WriteJSON(w, http.StatusOK, chat)
+	return s.ap.WriteJSON(w, http.StatusOK, "chat created succssesfully")
 }
