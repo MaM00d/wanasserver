@@ -10,7 +10,7 @@ import (
 func (s *ElPersona) createPersonaTabel() error {
 	query := `
             CREATE TABLE if not exists persona (
-                id int unique  ,
+                id int NOT NULL,
                 name char(50)   NOT NULL,
                 userid int   NOT NULL,
                 createdat timestamp   NOT NULL,
@@ -54,7 +54,7 @@ func (s *ElPersona) createfunctionid() error {
             CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
               RETURNS "pg_catalog"."trigger" AS $BODY$ 
             begin
-            new.id = (select count(*)+1 from persona where userid=new.userid);
+            new.id = (select count(*) from persona where userid=new.userid);
             return NEW;
             end;
             $BODY$

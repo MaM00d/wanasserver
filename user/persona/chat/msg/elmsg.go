@@ -31,12 +31,6 @@ func (s *ElMsg) InitDb() error {
 	if err := s.createMsgTabel(); err != nil {
 		return err
 	}
-	if err := s.createpersonafk(); err != nil {
-		return err
-	}
-	if err := s.createuserfk(); err != nil {
-		return err
-	}
 
 	if err := s.createfunctionid(); err != nil {
 		return err
@@ -49,12 +43,6 @@ func (s *ElMsg) InitDb() error {
 }
 
 func (s *ElMsg) DropDb() error {
-	if err := s.droppersonafk(); err != nil {
-		return err
-	}
-	if err := s.dropuserfk(); err != nil {
-		return err
-	}
 	if err := s.droptrigid(); err != nil {
 		return err
 	}

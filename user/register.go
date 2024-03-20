@@ -51,7 +51,7 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	slog.Info("Successfully Registered")
+	slog.Info("Successfully Registered", "user", user.Name)
 
 	token, err := tokenizejwt(user)
 	if err != nil {

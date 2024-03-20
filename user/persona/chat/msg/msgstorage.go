@@ -34,28 +34,10 @@ func (s *ElMsg) dropMsgTabel() error {
 	return err
 }
 
-func (s *ElMsg) createuserfk() error {
-	query := `
-    ALTER TABLE msg ADD CONSTRAINT fk_msg_useriD FOREIGN KEY(useriD)
-    REFERENCES users (id);
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElMsg) dropuserfk() error {
-	query := `
-    ALTER TABLE msg
-    drop CONSTRAINT fk_msg_userid;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
 func (s *ElMsg) createchatfk() error {
 	query := `
-    ALTER TABLE msg ADD CONSTRAINT fk_msg_chatid FOREIGN KEY(chatid)
-    REFERENCES chat (id);
+    ALTER TABLE msg ADD CONSTRAINT fk_msg_chatid FOREIGN KEY(chatid,userid,personaid)
+    REFERENCES chat (id,userid,personaid);
     `
 	err := s.db.Exec(query)
 	return err
@@ -65,23 +47,6 @@ func (s *ElMsg) dropchatfk() error {
 	query := `
     ALTER TABLE msg
     drop CONSTRAINT fk_msg_chatid;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElMsg) createpersonafk() error {
-	query := `
-    ALTER TABLE msg ADD CONSTRAINT fk_msg_personaid FOREIGN KEY(personaid)
-    REFERENCES persona (id);
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElMsg) droppersonafk() error {
-	query := `
-    ALTER TABLE msg drop CONSTRAINT fk_msg_personaid;
     `
 	err := s.db.Exec(query)
 	return err

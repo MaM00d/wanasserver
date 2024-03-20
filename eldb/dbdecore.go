@@ -58,8 +58,9 @@ func (s *Storage) Query(query string, args ...any) error {
 	_, err := s.db.Query(s.ctx, query, args...)
 	if err != nil {
 		slog.Error("SQL", "Query", err)
+		return err
 	}
-	return err
+	return nil
 }
 
 func (s *Storage) QueryRow(query string, args ...any) pgx.Row {

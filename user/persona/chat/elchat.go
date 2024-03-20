@@ -34,10 +34,7 @@ func (s *ElChat) InitDb() error {
 	if err := s.createChatTabel(); err != nil {
 		return err
 	}
-	if err := s.createpersonafk(); err != nil {
-		return err
-	}
-	if err := s.createuserfk(); err != nil {
+	if err := s.createpersonauserfk(); err != nil {
 		return err
 	}
 
@@ -52,10 +49,7 @@ func (s *ElChat) InitDb() error {
 }
 
 func (s *ElChat) DropDb() error {
-	if err := s.droppersonafk(); err != nil {
-		return err
-	}
-	if err := s.dropuserfk(); err != nil {
+	if err := s.droppersonauserfk(); err != nil {
 		return err
 	}
 	if err := s.droptrigid(); err != nil {

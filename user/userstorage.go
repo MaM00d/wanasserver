@@ -33,12 +33,11 @@ func (s ElUser) dropUserTabel() error {
 
 func (s ElUser) Insert(user *User) error {
 	query := `insert into Users 
-    (id,Name,Email,Password,Phone,CreatedAt)
-    values ($1,$2,$3,$4,$5,$6)
+    (Name,Email,Password,Phone,CreatedAt)
+    values ($1,$2,$3,$4,$5)
     `
 	return s.db.Query(
 		query,
-		&user.ID,
 		&user.Name,
 		&user.Email,
 		&user.Password,

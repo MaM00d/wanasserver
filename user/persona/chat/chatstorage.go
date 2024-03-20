@@ -32,35 +32,18 @@ func (s *ElChat) dropChatTabel() error {
 	return err
 }
 
-func (s *ElChat) createpersonafk() error {
+func (s *ElChat) createpersonauserfk() error {
 	query := `
-    ALTER TABLE chat ADD CONSTRAINT fk_chat_personaid FOREIGN KEY(personaid)
-    REFERENCES persona(id);
+    ALTER TABLE chat ADD CONSTRAINT fk_chat_personaid FOREIGN KEY(personaid,userid)
+    REFERENCES persona(id,userid);
     `
 	err := s.db.Exec(query)
 	return err
 }
 
-func (s *ElChat) droppersonafk() error {
+func (s *ElChat) droppersonauserfk() error {
 	query := `
     ALTER TABLE chat drop CONSTRAINT fk_chat_personaid;
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElChat) createuserfk() error {
-	query := `
-    ALTER TABLE chat ADD CONSTRAINT fk_chat_useriD FOREIGN KEY(useriD)
-    REFERENCES users (id);
-    `
-	err := s.db.Exec(query)
-	return err
-}
-
-func (s *ElChat) dropuserfk() error {
-	query := `
-    ALTER TABLE chat drop CONSTRAINT fk_chat_userid;
     `
 	err := s.db.Exec(query)
 	return err
