@@ -29,7 +29,7 @@ func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 	acc, err := s.SelectUserByEmail(req.Email)
 	if err == s.db.NotFound {
 		slog.Error("no user found with this email")
-		return s.ap.WriteError(w, http.StatusNotFound, "No user found with this Email")
+		return s.ap.WriteJSON(w, http.StatusNotFound, "No user found with this Email")
 	}
 
 	slog.Info(req.Password)

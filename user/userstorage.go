@@ -1,5 +1,10 @@
 package user
 
+import (
+	"fmt"
+	"log/slog"
+)
+
 func (s ElUser) createUserTable() error {
 	query := `
         CREATE TABLE IF NOT EXISTS Users (
@@ -61,9 +66,9 @@ func (s ElUser) SelectUserById(id int) (*User, error) {
 		return nil, err
 	}
 	if len(eluser) == 0 {
-		return nil, s.db.NotFound
+		slog.Info("no user found with this email", "email", id)
+		return nil, fmt.Errorf("user with email [%d] not found", id)
 	}
-
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
 	// }
@@ -74,11 +79,12 @@ func (s ElUser) SelectUserById(id int) (*User, error) {
 func (s ElUser) SelectUserByEmail(email string) (*User, error) {
 	var eluser []*User
 	err := s.db.QueryScan(&eluser, `select * from Users where email = $1`, email)
+	if len(eluser) == 0 {
+		slog.Info("no user found with this email", "email", email)
+		return nil, s.db.NotFound
+	}
 	if err != nil {
 		return nil, err
-	}
-	if len(eluser) == 0 {
-		return nil, s.db.NotFound
 	}
 
 	// for rows.Next() {

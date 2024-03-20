@@ -17,6 +17,7 @@ type Storage struct {
 	// db *sql.DB
 	db       *pgxpool.Pool
 	ctx      context.Context
+	entities *[]entity
 	NotFound error
 }
 

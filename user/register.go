@@ -34,14 +34,18 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 		userReq.Password,
 		elphone,
 	)
+	slog.Info("hello")
 	if err := user.Encrippass(); err != nil {
 		return err
 	}
 
+	slog.Info("2hello")
 	if usr, _ := s.SelectUserByEmail(userReq.Email); usr != nil {
 		slog.Error("user with email exist")
 		return s.ap.WriteError(w, http.StatusConflict, "User exsists with that email")
 	}
+
+	slog.Info("3hello")
 	// save user to database
 	if err := s.Insert(user); err != nil {
 		return err

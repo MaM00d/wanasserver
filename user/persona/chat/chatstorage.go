@@ -11,7 +11,7 @@ import (
 func (s *ElChat) createChatTabel() error {
 	query := `
             CREATE TABLE if not exists chat (
-                id int  unique   NOT NULL,
+                id int  NOT NULL,
                 personaid int   NOT NULL,
                 useriD int   NOT NULL,
                 createdat timestamp   NOT NULL,
@@ -92,7 +92,7 @@ func (s *ElChat) createfunctionid() error {
     CREATE OR REPLACE FUNCTION "fn_trig_chat_pk"()
     RETURNS "pg_catalog"."trigger" AS $BODY$ 
     begin
-    new.id = (select count(*)+1 from chat where userid=new.userid and personaid=new.personaid);
+    new.id = (select count(*) from chat where userid=new.userid and personaid=new.personaid);
     return NEW;
     end;
     $BODY$
@@ -125,6 +125,7 @@ func (s *ElChat) InsertChat(elchat *Chat) error {
 		slog.Error("inserting to database")
 		return err
 	}
+	slog.Info("inserted chat to database", "personaid: ", elchat.PersonaID)
 
 	return nil
 }

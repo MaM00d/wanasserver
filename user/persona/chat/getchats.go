@@ -19,7 +19,7 @@ func (s *ElChat) getchats(w http.ResponseWriter, r *http.Request) error {
 	elchats, err := s.GetChatsByUserId(elpersonaid, eluserid)
 	if err != nil {
 		if err == s.db.NotFound {
-			return s.ap.WriteError(w, http.StatusOK, "")
+			return s.ap.WriteJSON(w, http.StatusOK, "")
 		}
 		if err == s.PersonaDoesnotExsist {
 			return s.ap.WriteError(w, http.StatusNotFound, "Persona doesn't exsist")
