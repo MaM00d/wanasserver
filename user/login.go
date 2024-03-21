@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
 )
@@ -18,10 +17,9 @@ type LoginResponse struct {
 
 func (s *ElUser) Login(w http.ResponseWriter, r *http.Request) error {
 	slog.Info("Handling Login")
-	var req LoginRequest
+	req := new(LoginRequest)
 
-	bodybytes, err := io.ReadAll(r.Body)
-	if err := json.Unmarshal(bodybytes, &req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		slog.Error("decoding request body")
 		return err
 	}
