@@ -6,6 +6,8 @@ import (
 	"log/slog"
 
 	_ "github.com/lib/pq"
+
+	"Server/user/persona"
 )
 
 func (s *ElMsg) createMsgTabel() error {
@@ -149,14 +151,30 @@ func (s *ElMsg) GetMsgsByUserId(id int) ([]Msg, error) {
 	return msgs, nil
 }
 
-func (s *ElMsg) GetMsgs(userid, personaid, chatid int) ([]MsgView, error) {
-	var msgs []MsgView
-	rows := s.db.QueryScan(msgs, `select message createdat from Msgs where chatid = $1 and personaid = $2 and userid = $3 `, chatid, personaid, userid)
+func (s *ElMsg) GetMsgs(userid, personaid, chatid int) ([]*MsgView, error) {
+	var msgs []*MsgView
+	var pers []*persona.PersonaView
 
-	if rows == fmt.Errorf("not found") {
-
-		slog.Error("GetMsgsByUserId", "id", userid)
-		return nil, fmt.Errorf("msg with id [%d] not found", userid)
+	if err := s.db.QueryScan(&pers, `select id, name from persona where userid = $1 and id = $2`, userid, personaid); err != nil {
+		return nil, err
 	}
+	if len(pers) == 0 {
+		return nil, s.PersonaDoesnotExsist
+	}
+
+	err := s.db.QueryScan(
+		&msgs,
+		`select message from msg where chatid = $1 and personaid = $2 and userid = $3 `,
+		chatid,
+		personaid,
+		userid,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(msgs) == 0 {
+		return nil, s.db.NotFound
+	}
+	slog.Info("done", "msgs:", msgs)
 	return msgs, nil
 }

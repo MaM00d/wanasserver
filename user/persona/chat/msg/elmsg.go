@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"errors"
 	"log/slog"
 
 	api "Server/elapi"
@@ -8,15 +9,17 @@ import (
 )
 
 type ElMsg struct {
-	ap *api.ElApi
-	db *db.Storage
+	ap                   *api.ElApi
+	db                   *db.Storage
+	PersonaDoesnotExsist error
 }
 
 // create object of struct apiserver to set the listen addr
 func NewElMsg(db *db.Storage, elapi *api.ElApi) *ElMsg {
 	elmsg := &ElMsg{
-		ap: elapi,
-		db: db,
+		ap:                   elapi,
+		db:                   db,
+		PersonaDoesnotExsist: errors.New("persona doesn't exsist"),
 	}
 	return elmsg
 }
