@@ -19,6 +19,7 @@ func (s *ElMsg) createMsgTabel() error {
                 personaid int   NOT NULL,
                 message char(100)   NOT NULL,
                 createdat timestamp   NOT NULL,
+                state boolean not null,
                 CONSTRAINT pk_msg PRIMARY KEY (
                     id,chatid
                  )
@@ -59,7 +60,7 @@ func (s *ElMsg) createfunctionid() error {
             CREATE OR REPLACE FUNCTION "fn_trig_msg_pk"()
               RETURNS "pg_catalog"."trigger" AS $BODY$ 
             begin
-            new.id = (select count(*)+1 from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
+            new.id = (select count(*) from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
             return NEW;
             end;
             $BODY$
@@ -101,8 +102,8 @@ func (s *ElMsg) droptrigid() error {
 
 func (s *ElMsg) InsertMsg(elmsg *Msg) error {
 	query := `insert into Msg 
-    (chatid,personaid,userid,message,createdat)
-    values ($1,$2,$3,$4,$5)
+    (chatid,personaid,userid,message,createdat,state)
+    values ($1,$2,$3,$4,$5,$6)
     `
 	err := s.db.Query(
 		query,
@@ -110,7 +111,9 @@ func (s *ElMsg) InsertMsg(elmsg *Msg) error {
 		&elmsg.PersonaID,
 		&elmsg.UserID,
 		&elmsg.Message,
-		&elmsg.CreatedAt)
+		&elmsg.CreatedAt,
+		&elmsg.State,
+	)
 	if err != nil {
 		slog.Error("inserting to database")
 		return err
@@ -151,9 +154,9 @@ func (s *ElMsg) GetMsgsByUserId(id int) ([]Msg, error) {
 	return msgs, nil
 }
 
-func (s *ElMsg) GetMsgs(userid, personaid, chatid int) ([]*MsgView, error) {
-	var msgs []*MsgView
-	var pers []*persona.PersonaView
+func (s *ElMsg) GetMsgs(userid, personaid, chatid int) (*[]MsgView, error) {
+	var msgs []MsgView
+	var pers []persona.PersonaView
 
 	if err := s.db.QueryScan(&pers, `select id, name from persona where userid = $1 and id = $2`, userid, personaid); err != nil {
 		return nil, err
@@ -164,7 +167,7 @@ func (s *ElMsg) GetMsgs(userid, personaid, chatid int) ([]*MsgView, error) {
 
 	err := s.db.QueryScan(
 		&msgs,
-		`select message from msg where chatid = $1 and personaid = $2 and userid = $3 `,
+		`select message ,state,createdat from msg where chatid = $1 and personaid = $2 and userid = $3 `,
 		chatid,
 		personaid,
 		userid,
@@ -176,5 +179,5 @@ func (s *ElMsg) GetMsgs(userid, personaid, chatid int) ([]*MsgView, error) {
 		return nil, s.db.NotFound
 	}
 	slog.Info("done", "msgs:", msgs)
-	return msgs, nil
+	return &msgs, nil
 }

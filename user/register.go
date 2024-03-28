@@ -54,7 +54,7 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 	acc, err := s.SelectUserByEmail(userReq.Email)
 	if err == s.db.NotFound {
 		slog.Error("no user found with this email")
-		return s.ap.WriteJSON(w, http.StatusNotFound, "No user found with this Email")
+		return s.ap.WriteJSON(w, http.StatusNotFound, "errer registering user")
 	}
 
 	slog.Info("Successfully Registered", "user", acc.Name)

@@ -1,11 +1,12 @@
 package chat
 
 import (
-	"Server/user/persona"
 	"database/sql"
 	"log/slog"
 
 	_ "github.com/lib/pq"
+
+	"Server/user/persona"
 )
 
 func (s *ElChat) createChatTabel() error {
@@ -147,7 +148,12 @@ func (s *ElChat) GetChatsByUserId(personaid, userid int) ([]*ChatView, error) {
 		return nil, s.PersonaDoesnotExsist
 	}
 
-	err := s.db.QueryScan(&chats, `select id from Chat where userid = $1 and personaid = $2`, userid, personaid)
+	err := s.db.QueryScan(
+		&chats,
+		`select id from Chat where userid = $1 and personaid = $2`,
+		userid,
+		personaid,
+	)
 	if err != nil {
 		return nil, err
 	}

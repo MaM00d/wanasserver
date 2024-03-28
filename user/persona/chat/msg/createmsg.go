@@ -1,11 +1,12 @@
 package msg
 
 import (
-	"Server/user"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"Server/user"
 )
 
 type MsgRequest struct {
@@ -36,6 +37,7 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 		elpersonaid,
 		eluserid,
 		msgReq.Message,
+		true,
 	)
 	if err != nil {
 		return err
@@ -45,9 +47,24 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	aimsg := NewMsg(
+		elchatid,
+		elpersonaid,
+		eluserid,
+		"hello from ai",
+		false,
+	)
+	if err != nil {
+		return err
+	}
+
+	if err := s.InsertMsg(aimsg); err != nil {
+		return err
+	}
+
 	resp := MsgResponse{
 		Message: "hello from ai",
 	}
-	slog.Info("Successfully Registered")
+	slog.Info("Sent the message successfully")
 	return s.ap.WriteJSON(w, http.StatusOK, resp)
 }

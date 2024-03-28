@@ -76,19 +76,19 @@ func (s ElUser) SelectUserById(id int) (*User, error) {
 }
 
 func (s ElUser) SelectUserByEmail(email string) (*User, error) {
-	var eluser []*User
+	var eluser []User
 	err := s.db.QueryScan(&eluser, `select * from Users where email = $1`, email)
+	if err != nil {
+		return nil, err
+	}
 	if len(eluser) == 0 {
 		slog.Info("no user found with this email", "email", email)
 		return nil, s.db.NotFound
-	}
-	if err != nil {
-		return nil, err
 	}
 
 	// for rows.Next() {
 	// 	return scanIntoAccount(rows)
 	// }
 
-	return eluser[0], nil
+	return &eluser[0], nil
 }

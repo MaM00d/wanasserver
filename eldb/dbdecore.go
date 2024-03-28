@@ -77,7 +77,6 @@ func (s *Storage) Scan(rows *sql.Rows, obj ...any) error {
 func (s *Storage) QueryScan(obj interface{}, query string, args ...any) error {
 	err := pgxscan.Select(s.ctx, s.db, obj, query, args...)
 	if err != nil {
-		slog.Error("SQL", "QueryScan", err)
 		return err
 	}
 	return nil
