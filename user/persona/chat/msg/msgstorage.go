@@ -13,7 +13,7 @@ import (
 func (s *ElMsg) createMsgTabel() error {
 	query := `
             CREATE TABLE if not exists msg (
-                id int unique   NOT NULL,
+                id int NOT NULL,
                 useriD int   NOT NULL,
                 chatid int   NOT NULL,
                 personaid int   NOT NULL,
@@ -21,7 +21,7 @@ func (s *ElMsg) createMsgTabel() error {
                 createdat timestamp   NOT NULL,
                 state boolean not null,
                 CONSTRAINT pk_msg PRIMARY KEY (
-                    id,chatid
+                    id,personaid,chatid,userid
                  )
             );
     `
@@ -167,7 +167,7 @@ func (s *ElMsg) GetMsgs(userid, personaid, chatid int) (*[]MsgView, error) {
 
 	err := s.db.QueryScan(
 		&msgs,
-		`select message ,state,createdat from msg where chatid = $1 and personaid = $2 and userid = $3 `,
+		`select message ,state,createdat from msg where chatid = $1 and personaid = $2 and userid = $3`,
 		chatid,
 		personaid,
 		userid,
