@@ -32,6 +32,7 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 
 	elchatid, err := strconv.Atoi(s.ap.GetFromVars(r, "chatid"))
 	elpersonaid, err := strconv.Atoi(s.ap.GetFromVars(r, "personaid"))
+
 	msg := NewMsg(
 		elchatid,
 		elpersonaid,
@@ -46,24 +47,27 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	if err := s.InsertMsg(msg); err != nil {
 		return err
 	}
+	aires, err := s.ais.SendMessage(msgReq.Message)
+	if err != nil {
+		return err
+	}
 
 	aimsg := NewMsg(
 		elchatid,
 		elpersonaid,
 		eluserid,
-		"hello from ai",
+		aires,
 		false,
 	)
 	if err != nil {
 		return err
 	}
-
 	if err := s.InsertMsg(aimsg); err != nil {
 		return err
 	}
 
 	resp := MsgResponse{
-		Message: "hello from ai",
+		Message: aires,
 	}
 	slog.Info("Sent the message successfully")
 	return s.ap.WriteJSON(w, http.StatusOK, resp)

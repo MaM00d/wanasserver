@@ -11,15 +11,9 @@ import (
 
 func (s *ElChat) createChatTabel() error {
 	query := `
-            CREATE TABLE if not exists chat (
-                id int  NOT NULL,
-                personaid int   NOT NULL,
-                useriD int   NOT NULL,
-                createdat timestamp   NOT NULL,
-                CONSTRAINT pk_chat PRIMARY KEY (
-                    id,personaid,useriD
-                 )
-            );
+          CREATE TABLE IF NOT EXISTS chat (id int NOT NULL, personaid int NOT NULL, userid int NOT NULL, createdat timestamp NOT NULL, CONSTRAINT pk_chat PRIMARY KEY (id
+                                                                                                                                                                         , personaid
+                                                                                                                                                                         , userid));
     `
 	err := s.db.Exec(query)
 	return err
@@ -27,7 +21,7 @@ func (s *ElChat) createChatTabel() error {
 
 func (s *ElChat) dropChatTabel() error {
 	query := `
-    drop table if exists Chat;
+          DROP TABLE IF EXISTS chat;
     `
 	err := s.db.Exec(query)
 	return err
@@ -35,8 +29,9 @@ func (s *ElChat) dropChatTabel() error {
 
 func (s *ElChat) createpersonauserfk() error {
 	query := `
-    ALTER TABLE chat ADD CONSTRAINT fk_chat_personaid FOREIGN KEY(personaid,userid)
-    REFERENCES persona(id,userid);
+          ALTER TABLE chat ADD CONSTRAINT fk_chat_personaid
+            FOREIGN key(personaid, userid) REFERENCES persona(
+                                                        id, userid);
     `
 	err := s.db.Exec(query)
 	return err
@@ -44,7 +39,8 @@ func (s *ElChat) createpersonauserfk() error {
 
 func (s *ElChat) droppersonauserfk() error {
 	query := `
-    ALTER TABLE chat drop CONSTRAINT fk_chat_personaid;
+          ALTER TABLE chat
+            DROP CONSTRAINT fk_chat_personaid;
     `
 	err := s.db.Exec(query)
 	return err
@@ -52,12 +48,10 @@ func (s *ElChat) droppersonauserfk() error {
 
 func (s *ElChat) createtriggerid() error {
 	query := `
-
-    CREATE TRIGGER trig_chat_pk
-    BEFORE insert 
-    ON chat
-    FOR EACH ROW
-    EXECUTE PROCEDURE fn_trig_chat_pk();
+          CREATE TRIGGER trig_chat_pk
+            BEFORE
+            INSERT ON chat
+            FOR EACH ROW EXECUTE PROCEDURE fn_trig_chat_pk();
     `
 	err := s.db.Exec(query)
 	return err
@@ -65,7 +59,7 @@ func (s *ElChat) createtriggerid() error {
 
 func (s *ElChat) droptrigid() error {
 	query := `
-    drop trigger if exists trig_chat_pk on chat;
+          DROP TRIGGER IF EXISTS trig_chat_pk ON chat;
     `
 	err := s.db.Exec(query)
 	return err
@@ -73,15 +67,12 @@ func (s *ElChat) droptrigid() error {
 
 func (s *ElChat) createfunctionid() error {
 	query := `
-    CREATE OR REPLACE FUNCTION "fn_trig_chat_pk"()
-    RETURNS "pg_catalog"."trigger" AS $BODY$ 
-    begin
-    new.id = (select count(*) from chat where userid=new.userid and personaid=new.personaid);
-    return NEW;
-    end;
-    $BODY$
-    LANGUAGE plpgsql VOLATILE
-    COST 100;
+          CREATE OR REPLACE FUNCTION "fn_trig_chat_pk"() RETURNS "pg_catalog"."trigger" AS $BODY$
+              begin
+              new.id = (select count(*) from chat where userid=new.userid and personaid=new.personaid);
+              return NEW;
+              end;
+              $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
     `
 	err := s.db.Exec(query)
 	return err
@@ -89,7 +80,7 @@ func (s *ElChat) createfunctionid() error {
 
 func (s *ElChat) dropfunctionid() error {
 	query := `
-    drop function if exists fn_trig_chat_pk;
+          DROP FUNCTION IF EXISTS fn_trig_chat_pk;
     `
 	err := s.db.Exec(query)
 	return err
@@ -97,8 +88,8 @@ func (s *ElChat) dropfunctionid() error {
 
 func (s *ElChat) InsertChat(elchat *Chat) error {
 	query := `insert into Chat 
-    (personaid,userid,createdat)
-    values ($1,$2,$3)
+          (personaid,userid,createdat)
+            VALUES ($1,$2,$3)
     `
 	err := s.db.Query(
 		query,

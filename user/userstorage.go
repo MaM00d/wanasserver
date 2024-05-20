@@ -7,17 +7,7 @@ import (
 
 func (s ElUser) createUserTable() error {
 	query := `
-        CREATE TABLE IF NOT EXISTS Users (
-            ID serial   NOT NULL,
-            Name char(50)   NOT NULL,
-            Email char(50)   NOT NULL,
-            Password char(100)   NOT NULL,
-            Phone integer   NULL,
-            CreatedAt timestamp   NOT NULL,
-            CONSTRAINT pk_User PRIMARY KEY (
-                ID
-             )
-        );
+          CREATE TABLE IF NOT EXISTS users (id serial NOT NULL, name char(50) NOT NULL, email char(50) NOT NULL, password char(100) NOT NULL, phone integer NULL, createdat timestamp NOT NULL, CONSTRAINT pk_user PRIMARY KEY (id));
     `
 	err := s.db.Exec(query)
 	return err
@@ -25,7 +15,7 @@ func (s ElUser) createUserTable() error {
 
 func (s ElUser) dropUserTabel() error {
 	query := `
-    drop table if exists users;
+          DROP TABLE IF EXISTS users;
     `
 	err := s.db.Exec(query)
 	return err
@@ -33,8 +23,8 @@ func (s ElUser) dropUserTabel() error {
 
 func (s ElUser) Insert(user *User) error {
 	query := `insert into Users 
-    (Name,Email,Password,Phone,CreatedAt)
-    values ($1,$2,$3,$4,$5)
+          (name,email,password,phone,createdat)
+            VALUES ($1,$2,$3,$4,$5)
     `
 	return s.db.Query(
 		query,
