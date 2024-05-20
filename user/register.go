@@ -51,15 +51,21 @@ func (s *ElUser) Register(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	slog.Info("Successfully Registered", "user", user.Name)
+	acc, err := s.SelectUserByEmail(userReq.Email)
+	if err == s.db.NotFound {
+		slog.Error("no user found with this email")
+		return s.ap.WriteJSON(w, http.StatusNotFound, "errer registering user")
+	}
 
-	token, err := tokenizejwt(user)
+	slog.Info("Successfully Registered", "user", acc.Name)
+
+	token, err := tokenizejwt(acc)
 	if err != nil {
 		return err
 	}
 	resp := LoginResponse{
 		Token: token,
-		Email: user.Email,
+		Email: acc.Email,
 	}
 	return s.ap.WriteJSON(w, http.StatusOK, resp)
 }

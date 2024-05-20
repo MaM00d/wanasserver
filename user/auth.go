@@ -49,9 +49,11 @@ func (eluser *ElUser) Authenticate(
 ) error {
 	slog.Info("Authenticating")
 	tokenString := r.Header.Get("x-jwt-token")
+	slog.Info("log", "token", tokenString)
 
 	token, err := detokenizejwt(tokenString)
 	if err != nil {
+
 		if len(tokenString) == 0 {
 			slog.Error("no token in header")
 		} else {

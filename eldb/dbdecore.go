@@ -55,11 +55,12 @@ func (s *Storage) Exec(query string) error {
 }
 
 func (s *Storage) Query(query string, args ...any) error {
-	_, err := s.db.Query(s.ctx, query, args...)
+	rows, err := s.db.Query(s.ctx, query, args...)
 	if err != nil {
 		slog.Error("SQL", "Query", err)
 		return err
 	}
+	defer rows.Close()
 	return nil
 }
 
@@ -77,8 +78,8 @@ func (s *Storage) Scan(rows *sql.Rows, obj ...any) error {
 func (s *Storage) QueryScan(obj interface{}, query string, args ...any) error {
 	err := pgxscan.Select(s.ctx, s.db, obj, query, args...)
 	if err != nil {
-		slog.Error("SQL", "QueryScan", err)
 		return err
 	}
+
 	return nil
 }

@@ -1,5 +1,5 @@
 build:
-	@go build -o bin/wserv
+	@go build -buildvcs=false -o bin/wserv
 
 run: build
 	@./bin/wserv
