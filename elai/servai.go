@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/daulet/tokenizers"
+	// "github.com/daulet/tokenizers"
 )
 
 type Aiserver struct {
@@ -102,16 +102,16 @@ func (ais *Aiserver) SendMessage(message string) (string, error) {
 //     }
 // }
 
-func Tokenize(text string) error {
-	tk, err := tokenizers.FromFile(
-		"/home/me/loc/.hfcache/hub/models--FreedomIntelligence--AceGPT-13B/snapshots/4ceb8c997a28c82f8cd3f55834d690f19456f5df/tokenizer.json",
-	)
-	if err != nil {
-		return err
-	}
-	fmt.Println("Vocab size:", tk.VocabSize())
-	// Vocab size: 30522
-	fmt.Println(tk.Encode(text, true))
-	defer tk.Close()
-	return nil
-}
+// func Tokenize(text string) error {
+// 	tk, err := tokenizers.FromFile(
+// 		"/home/me/loc/.hfcache/hub/models--FreedomIntelligence--AceGPT-13B/snapshots/4ceb8c997a28c82f8cd3f55834d690f19456f5df/tokenizer.json",
+// 	)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println("Vocab size:", tk.VocabSize())
+// 	// Vocab size: 30522
+// 	fmt.Println(tk.Encode(text, true))
+// 	defer tk.Close()
+// 	return nil
+// }
