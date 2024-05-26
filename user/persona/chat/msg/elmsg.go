@@ -18,7 +18,7 @@ type ElMsg struct {
 
 // create object of struct apiserver to set the listen addr
 func NewElMsg(db *db.Storage, elapi *api.ElApi) *ElMsg {
-	ais := ai.InitAiServer("localhost:12345")
+	ais := ai.InitAiServer("ai:12345")
 
 	elmsg := &ElMsg{
 		ap:                   elapi,
