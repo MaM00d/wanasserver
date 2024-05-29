@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"Server/user"
 )
@@ -47,7 +48,17 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	if err := s.InsertMsg(msg); err != nil {
 		return err
 	}
-	aires, err := s.ais.SendMessage(msgReq.Message)
+	history, err := s.GetMsgs(eluserid, elpersonaid, elchatid)
+	if err != nil {
+		return err
+	}
+	var historyString []string
+	for _, v := range *history {
+		historyString = append(historyString, v.Message)
+	}
+
+	message := strings.Join(historyString, "\n") + "~~~" + msgReq.Message
+	aires, err := s.ais.SendMessage(message)
 	if err != nil {
 		return err
 	}
