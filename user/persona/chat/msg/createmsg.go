@@ -58,10 +58,13 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	message := strings.Join(historyString, "\n") + "~~~" + msgReq.Message
+	slog.Info(message)
 	aires, err := s.ais.SendMessage(message)
 	if err != nil {
+		slog.Error("error", "error", err)
 		return err
 	}
+	aires = strings.Trim(aires, " ")
 
 	aimsg := NewMsg(
 		elchatid,

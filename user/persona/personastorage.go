@@ -9,15 +9,8 @@ import (
 
 func (s *ElPersona) createPersonaTabel() error {
 	query := `
-            CREATE TABLE if not exists persona (
-                id int NOT NULL,
-                name char(50)   NOT NULL,
-                userid int   NOT NULL,
-                createdat timestamp   NOT NULL,
-                CONSTRAINT pk_persona PRIMARY KEY (
-                    id,useriD
-                 )
-            );
+          CREATE TABLE IF NOT EXISTS persona (id int NOT NULL, name char(50) NOT NULL, userid int NOT NULL, createdat timestamp NOT NULL, CONSTRAINT pk_persona PRIMARY KEY (id
+                                                                                                                                                                               , userid));
     `
 	err := s.db.Exec(query)
 	return err
@@ -25,7 +18,7 @@ func (s *ElPersona) createPersonaTabel() error {
 
 func (s *ElPersona) dropPersonaTabel() error {
 	query := `
-    drop table if exists Persona;
+          DROP TABLE IF EXISTS persona;
     `
 	err := s.db.Exec(query)
 	return err
@@ -33,8 +26,8 @@ func (s *ElPersona) dropPersonaTabel() error {
 
 func (s *ElPersona) createuserfk() error {
 	query := `
-    ALTER TABLE persona ADD CONSTRAINT fk_persona_useriD FOREIGN KEY(useriD)
-    REFERENCES users (id);
+          ALTER TABLE persona ADD CONSTRAINT fk_persona_userid
+            FOREIGN key(userid) REFERENCES users (id);
     `
 	err := s.db.Exec(query)
 	return err
@@ -42,8 +35,8 @@ func (s *ElPersona) createuserfk() error {
 
 func (s *ElPersona) dropuserfk() error {
 	query := `
-    ALTER TABLE persona
-    drop CONSTRAINT fk_persona_userid;
+          ALTER TABLE IF EXISTS persona
+            DROP CONSTRAINT IF EXISTS fk_persona_userid;
     `
 	err := s.db.Exec(query)
 	return err
@@ -51,15 +44,12 @@ func (s *ElPersona) dropuserfk() error {
 
 func (s *ElPersona) createfunctionid() error {
 	query := `
-            CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"()
-              RETURNS "pg_catalog"."trigger" AS $BODY$ 
-            begin
-            new.id = (select count(*) from persona where userid=new.userid);
-            return NEW;
-            end;
-            $BODY$
-              LANGUAGE plpgsql VOLATILE
-              COST 100;
+          CREATE OR REPLACE FUNCTION "fn_trig_persona_pk"() RETURNS "pg_catalog"."trigger" AS $BODY$
+                      begin
+                      new.id = (select count(*) from persona where userid=new.userid);
+                      return NEW;
+                      end;
+                      $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
     `
 	err := s.db.Exec(query)
 	return err
@@ -67,7 +57,7 @@ func (s *ElPersona) createfunctionid() error {
 
 func (s *ElPersona) dropfunctionid() error {
 	query := `
-    drop function if exists fn_trig_persona_pk;
+          DROP FUNCTION IF EXISTS fn_trig_persona_pk;
     `
 	err := s.db.Exec(query)
 	return err
@@ -75,12 +65,10 @@ func (s *ElPersona) dropfunctionid() error {
 
 func (s *ElPersona) createtriggerid() error {
 	query := `
-
-            CREATE TRIGGER trig_persona_pk
-              BEFORE insert 
-              ON persona
-              FOR EACH ROW
-              EXECUTE PROCEDURE fn_trig_persona_pk();
+          CREATE TRIGGER trig_persona_pk
+            BEFORE
+            INSERT ON persona
+            FOR EACH ROW EXECUTE PROCEDURE fn_trig_persona_pk();
     `
 	err := s.db.Exec(query)
 	return err
@@ -88,7 +76,7 @@ func (s *ElPersona) createtriggerid() error {
 
 func (s *ElPersona) droptrigid() error {
 	query := `
-    drop trigger if exists trig_persona_pk on persona;
+          DROP TRIGGER IF EXISTS trig_persona_pk ON persona;
     `
 	err := s.db.Exec(query)
 	return err
@@ -96,8 +84,8 @@ func (s *ElPersona) droptrigid() error {
 
 func (s *ElPersona) InsertPersona(elpersona *Persona) error {
 	query := `insert into Persona 
-    (name,userid,createdat)
-    values ($1,$2,$3)
+          (name,userid,createdat)
+            VALUES ($1,$2,$3)
     `
 	err := s.db.Query(
 		query,

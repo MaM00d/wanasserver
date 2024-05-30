@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4"
@@ -34,9 +35,20 @@ func NewPostgresStore() (*Storage, error) {
 		return nil, err
 	}
 	db, err := pgxpool.ConnectConfig(ctx, config)
-	if err != nil {
-		return nil, err
+	eltime := 0
+	for db == nil {
+		time.Sleep(2 * time.Second)
+		db, err = pgxpool.ConnectConfig(ctx, config)
+		eltime = eltime + 2
+
+		if err != nil && eltime == 10 {
+
+			slog.Error("Time Out Can't connet to database")
+			return nil, err
+		}
+		slog.Warn("waiting to connect to database")
 	}
+	slog.Info("connected to database successfully")
 
 	return &Storage{
 		db:       db,

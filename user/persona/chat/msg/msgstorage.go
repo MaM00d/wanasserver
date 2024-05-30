@@ -41,8 +41,8 @@ func (s *ElMsg) createchatfk() error {
 
 func (s *ElMsg) dropchatfk() error {
 	query := `
-          ALTER TABLE msg
-            DROP CONSTRAINT fk_msg_chatid;
+          ALTER TABLE IF EXISTS msg
+            DROP CONSTRAINT IF EXISTS fk_msg_chatid;
     `
 	err := s.db.Exec(query)
 	return err
@@ -51,11 +51,11 @@ func (s *ElMsg) dropchatfk() error {
 func (s *ElMsg) createfunctionid() error {
 	query := `
           CREATE OR REPLACE FUNCTION "fn_trig_msg_pk"() RETURNS "pg_catalog"."trigger" AS $BODY$
-                      begin
-                      new.id = (select count(*) from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
-                      return NEW;
-                      end;
-                      $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
+                                begin
+                                new.id = (select count(*) from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
+                                return NEW;
+                                end;
+                                $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
     `
 	err := s.db.Exec(query)
 	return err

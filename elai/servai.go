@@ -1,106 +1,73 @@
 package elai
 
 import (
-	"bufio"
 	"fmt"
 	"log/slog"
 	"net"
-
-	// "github.com/daulet/tokenizers"
+	"time"
 )
 
 type Aiserver struct {
-	conn    *net.Conn
 	address string
+	conn    *net.TCPConn
 }
 
-// func callapi(elmessage string) string {
-//
-// }
 func InitAiServer(address string) *Aiserver {
 	slog.Info("Start Init Ai Server")
 	ais := &Aiserver{
 		address: address,
 	}
 	err := ais.connectToServer()
-	if err != nil {
+	for err != nil {
 		slog.Error("Init Ai Server", "El Error:", err)
+		slog.Warn("trying to re connect...")
+		time.Sleep(2 * time.Second)
+		err = ais.connectToServer()
 	}
 
 	slog.Info("Done Init Ai Server")
 	return ais
 }
 
-// Connect to the server and return the connection object
 func (ais *Aiserver) connectToServer() error {
-	conn, err := net.Dial("tcp", ais.address)
+	slog.Info("connecting to ai server")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ais.address)
 	if err != nil {
+		slog.Error("ResolveTCPAddr failed:", "Error:", err)
+		return err
+	}
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
+	if err != nil {
+		slog.Error("connecting to ai server", "error: ", err)
 		return fmt.Errorf("error connecting to server: %w", err)
 	}
-	ais.conn = &conn
+	ais.conn = conn
 	// defer conn.Close()
+
+	slog.Info("connected successfully to ai server")
 	return nil
 }
 
 // Send a message to the server and receive the response
 func (ais *Aiserver) SendMessage(message string) (string, error) {
-	// Send the message to the server
-	_, err := fmt.Fprintf(*ais.conn, message+"\n")
+	_, err := ais.conn.Write([]byte(message))
 	if err != nil {
-		return "", fmt.Errorf("error sending message: %w", err)
+		println("Write to server failed:", err.Error())
 	}
 
-	// Create a buffer to read data from the connection
-	reader := bufio.NewReader(*ais.conn)
+	println("write to server = ", message)
 
-	// Read the server's response
-	response, err := reader.ReadString('\n')
+	reply := make([]byte, 1024)
+
+	_, err = ais.conn.Read(reply)
 	if err != nil {
-		return "", fmt.Errorf("error reading response: %w", err)
+		println("Write to server failed:", err.Error())
 	}
-	slog.Info(response)
 
-	return response, nil
+	println("reply from server=", string(reply))
+
+	return string(reply), nil
 }
-
-// func main() {
-//     // Connect to the server
-//     conn, err := connectToServer("localhost:12345")
-//     if err != nil {
-//         fmt.Println(err)
-//         return
-//     }
-//     defer conn.Close()
-//
-//     // Read the initial message from the server
-//     initialMessage, err := sendMessage(conn, "")
-//     if err != nil {
-//         fmt.Println(err)
-//         return
-//     }
-//     fmt.Println("Server:", initialMessage)
-//
-//     // Scanner to read user input from the command line
-//     inputReader := bufio.NewReader(os.Stdin)
-//
-//     for {
-//         // Read input from the user
-//         fmt.Print("Enter message: ")
-//         userInput, err := inputReader.ReadString('\n')
-//         if err != nil {
-//             fmt.Println("Error reading input:", err)
-//             return
-//         }
-//
-//         // Send the user input to the server and get the response
-//         response, err := sendMessage(conn, userInput)
-//         if err != nil {
-//             fmt.Println(err)
-//             return
-//         }
-//         fmt.Println("Server:", response)
-//     }
-// }
 
 // func Tokenize(text string) error {
 // 	tk, err := tokenizers.FromFile(
