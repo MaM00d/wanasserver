@@ -12,7 +12,8 @@ type Aiserver struct {
 	conn    *net.TCPConn
 }
 
-func InitAiServer(address string) *Aiserver {
+func InitAiServer() *Aiserver {
+	address := "localhost:12345"
 	slog.Info("Start Init Ai Server")
 	ais := &Aiserver{
 		address: address,

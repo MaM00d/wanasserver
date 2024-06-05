@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	ai "Server/elai"
 	api "Server/elapi"
 	db "Server/eldb"
 	user "Server/user"
@@ -31,7 +32,8 @@ func (s *APIServer) Run() {
 	usr := user.NewElUser(s.store, ap)
 	pers := persona.NewElPersona(s.store, ap)
 	chat := chat.NewElChat(s.store, ap)
-	msg := msg.NewElMsg(s.store, ap)
+	ais := ai.InitAiServer()
+	msg := msg.NewElMsg(s.store, ap, ais)
 	InitRoutes(usr, pers, chat, msg)
 	DropDb(msg, chat, pers, usr)
 	InitDb(usr, pers, chat, msg)
