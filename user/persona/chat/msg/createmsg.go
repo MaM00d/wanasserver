@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"Server/user"
 )
@@ -38,33 +37,31 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 		elchatid,
 		elpersonaid,
 		eluserid,
-		msgReq.Message,
+		&msgReq.Message,
 		true,
 	)
 	if err != nil {
 		return err
 	}
 
+	history, err := s.GetMsgs(eluserid, elpersonaid, elchatid)
+	if err != nil {
+		if err != s.db.NotFound {
+			return err
+		}
+	}
 	if err := s.InsertMsg(msg); err != nil {
 		return err
 	}
-	history, err := s.GetMsgs(eluserid, elpersonaid, elchatid)
-	if err != nil {
-		return err
-	}
-	var historyString []string
+	var historyString string
 	for _, v := range *history {
-		historyString = append(historyString, v.Message)
+		historyString += v.Message
 	}
-
-	message := strings.Join(historyString, "\n") + "~~~" + msgReq.Message
-	slog.Info(message)
-	aires, err := s.ais.SendMessage(message)
+	aires, err := s.ais.SendMessage(historyString, msgReq.Message)
 	if err != nil {
 		slog.Error("error", "error", err)
 		return err
 	}
-	aires = strings.Trim(aires, " ")
 
 	aimsg := NewMsg(
 		elchatid,
@@ -81,7 +78,7 @@ func (s *ElMsg) sendmsg(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	resp := MsgResponse{
-		Message: aires,
+		Message: *aires,
 	}
 	slog.Info("Sent the message successfully")
 	return s.ap.WriteJSON(w, http.StatusOK, resp)

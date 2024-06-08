@@ -51,11 +51,11 @@ func (s *ElMsg) dropchatfk() error {
 func (s *ElMsg) createfunctionid() error {
 	query := `
           CREATE OR REPLACE FUNCTION "fn_trig_msg_pk"() RETURNS "pg_catalog"."trigger" AS $BODY$
-                                begin
-                                new.id = (select count(*) from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
-                                return NEW;
-                                end;
-                                $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
+                                                    begin
+                                                    new.id = (select count(*) from msg where userid=new.userid and personaid=new.personaid and chatid=new.chatid);
+                                                    return NEW;
+                                                    end;
+                                                    $BODY$ LANGUAGE PLPGSQL VOLATILE cost 100;
     `
 	err := s.db.Exec(query)
 	return err
@@ -164,7 +164,7 @@ func (s *ElMsg) GetMsgs(userid, personaid, chatid int) (*[]MsgView, error) {
 		return nil, err
 	}
 	if len(msgs) == 0 {
-		return nil, s.db.NotFound
+		return &msgs, s.db.NotFound
 	}
 	slog.Info("done", "msgs:", msgs)
 	return &msgs, nil

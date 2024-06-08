@@ -1,29 +1,30 @@
 package elai
 
 import (
+	"bytes"
 	"fmt"
 	"log/slog"
 	"net"
-	"time"
 )
 
 type Aiserver struct {
 	address string
-	conn    *net.TCPConn
+	conn    net.Conn
 }
 
 func InitAiServer() *Aiserver {
-	address := "localhost:12345"
 	slog.Info("Start Init Ai Server")
+
+	address := "localhost:12345"
+	conn, err := net.Dial("tcp", address)
+	if err != nil {
+		slog.Error("Error connecting to server:", err)
+	}
+	defer conn.Close()
+
 	ais := &Aiserver{
 		address: address,
-	}
-	err := ais.connectToServer()
-	for err != nil {
-		slog.Error("Init Ai Server", "El Error:", err)
-		slog.Warn("trying to re connect...")
-		time.Sleep(2 * time.Second)
-		err = ais.connectToServer()
+		conn:    conn,
 	}
 
 	slog.Info("Done Init Ai Server")
@@ -49,25 +50,34 @@ func (ais *Aiserver) connectToServer() error {
 	return nil
 }
 
-// Send a message to the server and receive the response
-func (ais *Aiserver) SendMessage(message string) (string, error) {
-	_, err := ais.conn.Write([]byte(message))
+func (ais *Aiserver) SendMessage(message string, history string) (*string, error) {
+	// Send message to the server
+	_, err := ais.conn.Write([]byte(history + "~~~" + message + "!~!~!"))
 	if err != nil {
-		println("Write to server failed:", err.Error())
+		slog.Error("Error sending message:", err)
 	}
 
-	println("write to server = ", message)
-
-	reply := make([]byte, 1024)
-
-	_, err = ais.conn.Read(reply)
-	if err != nil {
-		println("Write to server failed:", err.Error())
+	// Read response from the server
+	var responseBuffer bytes.Buffer
+	tmp := make([]byte, 1024)
+	for {
+		n, err := ais.conn.Read(tmp)
+		if err != nil {
+			fmt.Println("Error reading response:", err)
+			return nil, err
+		}
+		responseBuffer.Write(tmp[:n])
+		if bytes.Contains(responseBuffer.Bytes(), []byte("!~!~!")) {
+			break
+		}
 	}
 
-	println("reply from server=", string(reply))
+	// Get the complete response
+	response := responseBuffer.String()
+	response = response[:len(response)-5] // Remove the delimiter
 
-	return string(reply), nil
+	slog.Info("Server response:", "response", response)
+	return &response, nil
 }
 
 // func Tokenize(text string) error {

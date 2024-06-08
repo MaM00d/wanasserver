@@ -9,7 +9,7 @@ type Msg struct {
 	ChatID    int       `db:"chatid"    json:"chatid"`
 	PersonaID int       `db:"personaid" json:"personaid"`
 	UserID    int       `db:"userid"    json:"userid"`
-	Message   string    `db:"message"   json:"message"`
+	Message   *string   `db:"message"   json:"message"`
 	State     bool      `db:"state"     json:"state"`
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 }
@@ -20,7 +20,7 @@ type MsgView struct {
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 }
 
-func NewMsg(chatid, personaid, userid int, message string, state bool) *Msg {
+func NewMsg(chatid, personaid, userid int, message *string, state bool) *Msg {
 	return &Msg{
 		ChatID:    chatid,
 		PersonaID: personaid,
