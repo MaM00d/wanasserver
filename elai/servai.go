@@ -15,7 +15,7 @@ type Aiserver struct {
 func InitAiServer() *Aiserver {
 	slog.Info("Start Init Ai Server")
 
-	address := "localhost:12345"
+	address := "97.119.128.191:40378"
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		slog.Error("Error connecting to server:", err)

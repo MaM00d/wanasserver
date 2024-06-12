@@ -32,9 +32,14 @@ func NewPostgresStore() (*Storage, error) {
 	ctx := context.Background()
 	config, err := pgxpool.ParseConfig(os.Getenv("DATABASE_URL"))
 	if err != nil {
+		slog.Error("connecting to database")
 		return nil, err
 	}
 	db, err := pgxpool.ConnectConfig(ctx, config)
+	if err != nil {
+		slog.Error("connecting to database")
+		return nil, err
+	}
 	eltime := 0
 	for db == nil {
 		time.Sleep(2 * time.Second)
