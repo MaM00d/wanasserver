@@ -20,7 +20,7 @@ func InitAiServer() *Aiserver {
 	if err != nil {
 		slog.Error("Error connecting to server:", err)
 	}
-	defer conn.Close()
+	// defer conn.Close()
 
 	ais := &Aiserver{
 		address: address,
